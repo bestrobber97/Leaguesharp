@@ -92,6 +92,12 @@ namespace HastaKalistaBaby
                         return true;
                 }
             }
+
+            if (target.ChampionName == "Kindred" && target.HasBuff("kindredrnodeathbuff"))
+            {
+                return true;
+            }
+
             if (target.ChampionName == "Poppy" && HeroManager.Allies.Any(
                 o =>
                 {
