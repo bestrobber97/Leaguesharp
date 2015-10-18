@@ -1,12 +1,6 @@
 ﻿using LeagueSharp;
-using LeagueSharp.SDK.Core.UI.IMenu.Values;
+using LeagueSharp.Common;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-using Menu = LeagueSharp.SDK.Core.UI.IMenu.Menu;
 
 namespace HastaKalistaBaby
 {
@@ -24,10 +18,10 @@ namespace HastaKalistaBaby
 
         private static void OnUpdate(EventArgs args)
         {
-            Q = root["lvl"]["1"].GetValue<MenuList>().Index;
-            W = root["lvl"]["2"].GetValue<MenuList>().Index;
-            E = root["lvl"]["3"].GetValue<MenuList>().Index;
-            R = root["lvl"]["4"].GetValue<MenuList>().Index;
+            Q = root.Item("1").GetValue<StringList>().SelectedIndex;
+            W = root.Item("2").GetValue<StringList>().SelectedIndex;
+            E = root.Item("3").GetValue<StringList>().SelectedIndex;
+            R = root.Item("4").GetValue<StringList>().SelectedIndex;
             if(SameValues())
             {
                 return;
@@ -36,7 +30,7 @@ namespace HastaKalistaBaby
 
         private static void Obj_AI_Base_OnLevelUp(Obj_AI_Base sender, EventArgs args)
         {
-            if (!sender.IsMe || !root["lvl"]["Lvlon"].GetValue<MenuBool>().Value || Program.Player.Level < root["lvl"]["s"].GetValue<MenuSlider>().Value || SameValues())
+            if (!sender.IsMe || !root.Item("Lvlon").GetValue<bool>() || Program.Player.Level < root.Item("s").GetValue<Slider>().Value || SameValues())
             {
                 return;
             }
@@ -80,7 +74,7 @@ namespace HastaKalistaBaby
 
         private static bool SameValues()
         {
-            if (Q == W || Q == E || Q == R || W == E || W == R || E == R)
+            if ((Q == W || Q == E || Q == R || W == E || W == R || E == R) && root.Item("Lvlon").GetValue<bool>())
             {
                 return true;
             }

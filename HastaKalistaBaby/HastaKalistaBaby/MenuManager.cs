@@ -1,12 +1,5 @@
-﻿using LeagueSharp.SDK.Core.UI.IMenu.Values;
-using SharpDX;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-using Menu = LeagueSharp.SDK.Core.UI.IMenu.Menu;
+﻿using LeagueSharp.Common;
+using System.Drawing;
 
 namespace HastaKalistaBaby
 {
@@ -16,103 +9,101 @@ namespace HastaKalistaBaby
         private static Menu draw = Program.draw;
         public static void Create()
         {
-            var q = new Menu("spell.q", "Q Settings");
+            var q = new Menu("Q Settings", "spell.q");
             {
-                q.Add(new MenuSeparator("Qsetting", "Q Settings"));
-                q.Add(new MenuBool("AutoQ", "Enable Q", true));
-                q.Add(new MenuBool("AutoQH", "Auto Q Harass", true));
-                q.Add(new MenuBool("AutoQM", "Auto Q Across Minions", true));
-                root.Add(q);
+                q.AddItem(new MenuItem("Qsetting", "Q Settings"));
+                q.AddItem(new MenuItem("AutoQ", "Enable Q").SetValue(true));
+                q.AddItem(new MenuItem("AutoQH", "Auto Q Harass").SetValue(true));
+                q.AddItem(new MenuItem("AutoQM", "Auto Q Across Minions").SetValue(true));
+                root.AddSubMenu(q);
             }
 
-            var w = new Menu("spell.w", "W Settings");
+            var w = new Menu("W Settings", "spell.w");
             {
-                w.Add(new MenuSeparator("Wsetting", "W Settings"));
-                w.Add(new MenuBool("AutoW", "Auto W", true));
-                w.Add(new MenuBool("WBaron", "W on Baron", true));
-                w.Add(new MenuBool("WDrake", "W on Drake", true));
-                root.Add(w);
+                w.AddItem(new MenuItem("Wsetting", "W Settings"));
+                w.AddItem(new MenuItem("AutoW", "Auto W").SetValue(true));
+                w.AddItem(new MenuItem("WAll", "Cast W on Nearest Monster").SetValue(new KeyBind('A',KeyBindType.Press)));
+                root.AddSubMenu(w);
             }
 
-            var e = new Menu("spell.e", "E Settings");
+            var e = new Menu("E Settings", "spell.e");
             {
-                e.Add(new MenuSeparator("Esetting", "E Settings"));
-                e.Add(new MenuBool("AutoEChamp", "Auto E On Champions", true));
-                e.Add(new MenuSeparator("jEsetting", "Jungle Settings"));
-                e.Add(new MenuBool("BlueM", "Auto E Blue", true));
-                e.Add(new MenuBool("RedM", "Auto E Red", true));
-                e.Add(new MenuBool("BaronM", "Auto E Baron", true));
-                e.Add(new MenuBool("DrakeM", "Auto E Dragon", true));
-                e.Add(new MenuBool("SmallM", "Auto E Smalls", false));
-                e.Add(new MenuBool("OtherM", "Auto E Gromp/Wolf/Krug/Raptor", true));
-                e.Add(new MenuBool("MidM", "Auto E Crab", true));
-                e.Add(new MenuSeparator("lEsetting", "LaneClear Settings"));
-                e.Add(new MenuBool("AutoEMinions", "Auto E Minions", false));
-                e.Add(new MenuSlider("minAutoEMinions", "Min minions", 2, 1, 5));
-                e.Add(new MenuBool("BigMinionFinisher", "Auto E Big Minions", true));
-                e.Add(new MenuBool("AutoEMinionsTower", "Auto E Big Minions Under Tower", true));
-                root.Add(e);
+                e.AddItem(new MenuItem("Esetting", "E Settings"));
+                e.AddItem(new MenuItem("AutoEChamp", "Auto E On Champions").SetValue(true));
+                e.AddItem(new MenuItem("jEsetting", "Jungle Settings"));
+                e.AddItem(new MenuItem("BlueM", "Auto E Blue").SetValue(true));
+                e.AddItem(new MenuItem("RedM", "Auto E Red").SetValue(true));
+                e.AddItem(new MenuItem("BaronM", "Auto E Baron").SetValue(true));
+                e.AddItem(new MenuItem("DrakeM", "Auto E Dragon").SetValue(true));
+                e.AddItem(new MenuItem("SmallM", "Auto E Smalls").SetValue(false));
+                e.AddItem(new MenuItem("OtherM", "Auto E Gromp/Wolf/Krug/Raptor").SetValue(true));
+                e.AddItem(new MenuItem("MidM", "Auto E Crab").SetValue(true));
+                e.AddItem(new MenuItem("lEsetting", "LaneClear Settings"));
+                e.AddItem(new MenuItem("AutoEMinions", "Auto E Minions").SetValue(true));
+                e.AddItem(new MenuItem("minAutoEMinions", "Min minions").SetValue(new Slider(2,1,5)));
+                e.AddItem(new MenuItem("BigMinionFinisher", "Auto E Big Minions").SetValue(true));
+                e.AddItem(new MenuItem("AutoEMinionsTower", "Auto E Big Minions Under Tower").SetValue(true));
+                root.AddSubMenu(e);
             }
 
-            var r = new Menu("spell.r", "R Settings");
+            var r = new Menu("R Settings", "spell.r");
             {
-                r.Add(new MenuSeparator("Rsetting", "R Settings"));
-                r.Add(new MenuBool("AutoR", "Auto R Saver", true));
-                r.Add(new MenuBool("KBS", "Auto R BlitzCrank/Skarner/Kench", true));
-                root.Add(r);
+                r.AddItem(new MenuItem("Rsetting", "R Settings"));
+                r.AddItem(new MenuItem("AutoR", "Auto R Saver").SetValue(true));
+                r.AddItem(new MenuItem("KBS", "Auto R BlitzCrank/Skarner/Kench").SetValue(true));
+                root.AddSubMenu(r);
             }
 
-            var item = new Menu("item", "Item Settings");
+            var item = new Menu("Item Settings", "item");
             {
-                item.Add(new MenuSeparator("bilgwater", "Bilgewater's Cutlass"));
-                item.Add(new MenuBool("bilg", "Bilgewater's Cutlass", true));
-                item.Add(new MenuSlider("enemybilg", "Use on Enemy HP % <=", 90, 0, 100));
-                item.Add(new MenuSlider("selfbilg", "Use on Self HP % <=", 25, 0, 100));
-                item.Add(new MenuSeparator("botrk", "Blade of the Ruined King"));
-                item.Add(new MenuBool("Botkr", "Blade of the Ruined King", true));
-                item.Add(new MenuSlider("enemyBotkr", "Use on Enemy HP % <=",90,0,100));
-                item.Add(new MenuSlider("selfBotkr", "Use on Self HP % <=", 25, 0, 100));
-                item.Add(new MenuSeparator("Youmus", "Youmuus Ghostblade"));
-                item.Add(new MenuBool("youm", "Youmuus Ghostblade", true));
-                item.Add(new MenuSlider("enemyYoumuus","Use on Enemy HP % <=", 95, 0, 100));
-                item.Add(new MenuSlider("selfYoumuus", "Use on Self HP % <=", 95, 0, 100));
-                root.Add(item);
+                item.AddItem(new MenuItem("bilgwater", "Bilgewater's Cutlass"));
+                item.AddItem(new MenuItem("bilg", "Bilgewater's Cutlass").SetValue(true));
+                item.AddItem(new MenuItem("enemybilg", "Use on Enemy HP % <=").SetValue(new Slider(90, 0, 100)));
+                item.AddItem(new MenuItem("selfbilg", "Use on Self HP % <=").SetValue(new Slider(25, 0, 100)));
+                item.AddItem(new MenuItem("botrk", "Blade of the Ruined King"));
+                item.AddItem(new MenuItem("Botkr", "Blade of the Ruined King").SetValue(true));
+                item.AddItem(new MenuItem("enemyBotkr", "Use on Enemy HP % <=").SetValue(new Slider(90, 0, 100)));
+                item.AddItem(new MenuItem("selfBotkr", "Use on Self HP % <=").SetValue(new Slider(25, 0, 100)));
+                item.AddItem(new MenuItem("Youmus", "Youmuus Ghostblade"));
+                item.AddItem(new MenuItem("youm", "Youmuus Ghostblade").SetValue(true));
+                item.AddItem(new MenuItem("enemyYoumuus","Use on Enemy HP % <=").SetValue(new Slider(95, 0, 100)));
+                item.AddItem(new MenuItem("selfYoumuus", "Use on Self HP % <=").SetValue(new Slider(95, 0, 100)));
+                root.AddSubMenu(item);
             }
 
             {
-                draw.Add(new MenuSeparator("Dsetting", "Drawing Settings"));
-                draw.Add(new MenuBool("Qrange", "Draw Q Range", false));
-                draw.Add(new MenuBool("Wrange", "Draw W Range", false));
-                draw.Add(new MenuBool("Erange", "Draw E Range", true));
-                draw.Add(new MenuBool("Rrange", "Draw R Range", false));
-                draw.Add(new MenuBool("healthp", "Show Health Percent", true));
-                draw.Add(new MenuColor("colorp", "Percent Color", new ColorBGRA(245, 245, 245, 255)));
-                draw.Add(new MenuBool("Target", "Draw Current Target", true));
-                draw.Add(new MenuBool("TargetA", "Draw Target Attack Range", true));
-                draw.Add(new MenuBool("Minionh", "Draw killable minions", true));
-                root.Add(draw);
+                draw.AddItem(new MenuItem("Dsetting", "Drawing Settings"));
+                draw.AddItem(new MenuItem("Qrange", "Draw Q Range").SetValue(false));
+                draw.AddItem(new MenuItem("Wrange", "Draw W Range").SetValue(false));
+                draw.AddItem(new MenuItem("Erange", "Draw E Range").SetValue(true));
+                draw.AddItem(new MenuItem("Rrange", "Draw R Range").SetValue(true));
+                draw.AddItem(new MenuItem("healthp", "Show Health Percent").SetValue(true));
+                draw.AddItem(new MenuItem("Target", "Draw Current Target").SetValue(true));
+                draw.AddItem(new MenuItem("TargetA", "Draw Target Attack Range").SetValue(true));
+                draw.AddItem(new MenuItem("Minionh", "Draw killable minions").SetValue(true));
+                root.AddSubMenu(draw);
             }
 
-            var lvl = new Menu("lvl", "Level Settigns");
+            var lvl = new Menu("Level Settigns", "lvl");
             {
-                lvl.Add(new MenuSeparator("Dsetting", "Level Settings"));
-                lvl.Add(new MenuBool("Lvlon", "Enable Level Up", true));
-                lvl.Add(new MenuList<String>("1", "1", new String[] { "Q", "W", "E", "R" }));
-                lvl.Add(new MenuList<String>("2", "2", new String[] { "Q", "W", "E", "R" }));
-                lvl.Add(new MenuList<String>("3", "3", new String[] { "Q", "W", "E", "R" }));
-                lvl.Add(new MenuList<String>("4", "4", new String[] { "Q", "W", "E", "R" }));
-                lvl.Add(new MenuSlider("s", "Start at level", 2, 1, 5));
-                root.Add(lvl);
+                lvl.AddItem(new MenuItem("Dsetting", "Level Settings"));
+                lvl.AddItem(new MenuItem("Lvlon", "Enable Level Up").SetValue(true));
+                lvl.AddItem(new MenuItem("1", "1").SetValue(new StringList(new[] { "Q", "W", "E", "R"},3)));
+                lvl.AddItem(new MenuItem("2", "2").SetValue(new StringList(new[] { "Q", "W", "E", "R" }, 1)));
+                lvl.AddItem(new MenuItem("3", "3").SetValue(new StringList(new[] { "Q", "W", "E", "R" }, 1)));
+                lvl.AddItem(new MenuItem("4", "4").SetValue(new StringList(new[] { "Q", "W", "E", "R" }, 1)));
+                lvl.AddItem(new MenuItem("s", "Start at level").SetValue(new Slider(2, 1, 5)));
+                root.AddSubMenu(lvl);
             }
 
-            var ex = new Menu("ExploitOP", "Exploit Settings");
+            var ex = new Menu("Exploit Settings", "ExploitOP");
             {
-                ex.Add(new MenuSeparator("EXsetting", "Exploit Settings"));
-                ex.Add(new MenuBool("Fly", "Activate Exploit", false));
-                root.Add(ex);
+                ex.AddItem(new MenuItem("EXsetting", "Exploit Settings"));
+                ex.AddItem(new MenuItem("Fly", "Activate Exploit").SetValue(false));
+                root.AddSubMenu(ex);
             }
 
-            root.Attach();
+            root.AddToMainMenu();
         }
     }
 }

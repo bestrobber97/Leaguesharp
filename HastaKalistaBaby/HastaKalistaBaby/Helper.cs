@@ -2,14 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using LeagueSharp;
-using LeagueSharp.SDK.Core;
-using LeagueSharp.SDK.Core.Extensions;
-using LeagueSharp.SDK.Core.Events;
 using SharpDX;
-using LeagueSharp.SDK.Core.UI.IMenu.Values;
-
-using Menu = LeagueSharp.SDK.Core.UI.IMenu.Menu;
-using LeagueSharp.SDK.Core.Wrappers;
+using LeagueSharp.Common;
 
 namespace HastaKalistaBaby
 {
@@ -25,11 +19,11 @@ namespace HastaKalistaBaby
                 if (spellName == "KalistaExpungeWrapper")
                 {
                     Program.lastecast = Game.Time;
-                    Orbwalker.ResetAutoAttackTimer();
+                    Orbwalking.ResetAutoAttackTimer();
                 }
             }
 
-            if (Program.R.IsReady() && hero.IsAlly && args.SData.Name == "RocketGrab" && Program.Player.Distance(hero.Position) < Program.R.Range && Program.Player.Distance(hero.Position) > 350 && root["spell.r"]["KBS"].GetValue<MenuBool>().Value)
+            if (Program.R.IsReady() && hero.IsAlly && args.SData.Name == "RocketGrab" && Program.Player.Distance(hero.Position) < Program.R.Range && Program.Player.Distance(hero.Position) > 350 && root.Item("KBS").GetValue<bool>())
             {
                 Program.grabT = Game.Time;
             }
@@ -98,7 +92,7 @@ namespace HastaKalistaBaby
                         return true;
                 }
             }
-            if (target.ChampionName == "Poppy" && GameObjects.AllyHeroes.Any(
+            if (target.ChampionName == "Poppy" && HeroManager.Allies.Any(
                 o =>
                 {
                     return !o.IsMe
@@ -116,7 +110,7 @@ namespace HastaKalistaBaby
 
         public static float CountEnemy(Vector3 pos, float range)
         {
-            return GameObjects.EnemyHeroes.Count(i => i.IsValidTarget(range, true, pos));
+            return HeroManager.Enemies.Count(i => i.IsValidTarget(range, true, pos));
         }
 
         public static Vector3[] CalculateVertices(int sides, float radius, float startingAngle, Vector3 center)

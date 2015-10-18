@@ -1,5 +1,5 @@
 ﻿using LeagueSharp;
-using LeagueSharp.SDK.Core.Wrappers;
+using LeagueSharp.Common;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,18 +10,18 @@ namespace HastaKalistaBaby
 {
     class Damage
     {
-        public static float GetQDmg(Obj_AI_Base target)
+       public static float GetQDmg(Obj_AI_Base target)
         {
             var dmg = new double[] { 10, 70, 130, 190, 250 }[Program.Q.Level]
                 + Program.Player.BaseAttackDamage + Program.Player.FlatPhysicalDamageMod;
-            return (float)Program.Player.CalculateDamage(target, DamageType.Physical, dmg);
+            return (float)ObjectManager.Player.CalcDamage(target,LeagueSharp.Common.Damage.DamageType.Physical,dmg);
         }
 
         public static float GetWDmg(Obj_AI_Base target)
         {
             var dmg = (new double[] { 12, 14, 16, 18, 20 }[Program.W.Level] / 100)
             * target.MaxHealth;
-            return (float)Program.Player.CalculateDamage(target, DamageType.Magical, dmg);
+            return (float)Program.Player.CalcDamage(target, LeagueSharp.Common.Damage.DamageType.Magical, dmg);
 
         }
 
@@ -51,19 +51,7 @@ namespace HastaKalistaBaby
                 if (target.HasBuff("FerociousHowl"))
                 {
                     dmg *= 0.3f;
-                }
-                if(target.HasBuff("gragaswself"))
-                {
-                    dmg *= 0.92f - ((target.Spellbook.GetSpell(SpellSlot.W).Level)*0.02f);
-                }
-                if (target.HasBuff("Medidate"))
-                {
-                    dmg *= 0.55f - ((target.Spellbook.GetSpell(SpellSlot.E).Level)*0.05f) ;
-                }
-                if (target.HasBuff("GarenW"))
-                {
-                    dmg *= 0.7f;
-                }
+                }   
                 if (target.HasBuff("vladimirhemoplaguedebuff"))
                 {
                     dmg *= 1.15f;
@@ -80,9 +68,10 @@ namespace HastaKalistaBaby
 
                 return
                 (float)
-                    Program.Player.CalculateDamage(target, DamageType.Physical, dmg + target.FlatHPRegenMod);
+                    Program.Player.CalcDamage(target, LeagueSharp.Common.Damage.DamageType.Physical, dmg + target.FlatHPRegenMod);
             }
             return 0;
+
         }
     }
 }

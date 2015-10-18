@@ -1,21 +1,11 @@
 ﻿using System;
 using System.Linq;
 using LeagueSharp;
-using LeagueSharp.SDK.Core;
-using LeagueSharp.SDK.Core.Enumerations;
-using LeagueSharp.SDK.Core.Extensions;
-using LeagueSharp.SDK.Core.UI.IMenu.Values;
-using LeagueSharp.SDK.Core.Wrappers;
-using LeagueSharp.SDK.Core.Events;
-using LeagueSharp.SDK.Core.Extensions.SharpDX;
-using LeagueSharp.SDK.Core.Utils;
+using LeagueSharp.Common;
 using SharpDX;
 using SharpDX.Direct3D9;
 
 using Color = System.Drawing.Color;
-
-using Menu = LeagueSharp.SDK.Core.UI.IMenu.Menu;
-using LeagueSharp.SDK.Core.Math.Prediction;
 
 namespace HastaKalistaBaby
 {
@@ -28,21 +18,22 @@ namespace HastaKalistaBaby
         static Items.Item yom = new Items.Item(3142, 750);
         static Items.Item bilgwat = new Items.Item(3144, 550);
         public static EarlyEvade ee;
+        public static Orbwalking.Orbwalker Orbwalker;
         public static int wcount = 0;
 
         public static Font Text;
         public static float grabT = Game.Time, lastecast = 0f;
         public static double i;
-        public static float time;
+        public static float time,wtime;
         public static Obj_AI_Hero soulmate = null;
 
 
         static void Main(string[] args)
         {
-            Load.OnLoad += OnGameLoad;
+            CustomEvents.Game.OnGameLoad += OnGameLoad;
         }
 
-        private static void OnGameLoad(object sender, EventArgs e)
+        private static void OnGameLoad(EventArgs e)
         {
             if (Player.ChampionName != "Kalista")
             {
@@ -57,8 +48,9 @@ namespace HastaKalistaBaby
             Q.SetSkillshot(0.25f, 30f, 1700f, true, SkillshotType.SkillshotLine);
 
             Text = new Font(Drawing.Direct3DDevice, new FontDescription { FaceName = "Arial", Height = 35, Width = 12, Weight = FontWeight.Bold, OutputPrecision = FontPrecision.Default, Quality = FontQuality.Default });
-            root = new Menu("hkalista", "HastaKalistaBaby", true);
-            draw = new Menu("drawing", "Drawings Settings");
+            root = new Menu("HastaKalistaBaby", "hkalista", true);
+            draw = new Menu("Drawings Settings", "drawing");
+            Orbwalker = new Orbwalking.Orbwalker(root.SubMenu("Orbwalker Settings"));
 
             MenuManager.Create();
             ee = new EarlyEvade();
@@ -74,19 +66,19 @@ namespace HastaKalistaBaby
         {
             switch (Orbwalker.ActiveMode)
             {
-                case OrbwalkerMode.Orbwalk:
+                case Orbwalking.OrbwalkingMode.Combo:
                     Items();
                     Qlogic();
-                    if (root["ExploitOP"]["Fly"].GetValue<MenuBool>().Value)
+                    if (root.Item("Fly").GetValue<bool>())
                     {
-                        var target = TargetSelector.GetTarget(Player.GetRealAutoAttackRange(),DamageType.Physical);
+                        var target = TargetSelector.GetTarget(Orbwalking.GetAttackRange(Player),TargetSelector.DamageType.Physical);
                         if (target.IsValidTarget())
                         {
-                            if (Game.Time * 1000 >= Orbwalker.LastAutoAttackTick + 1)
+                            if (Game.Time * 1000 >= Orbwalking.LastAATick + 1)
                             {
                                 Player.IssueOrder(GameObjectOrder.MoveTo, Game.CursorPos);
                             }
-                            if (Game.Time * 1000 > Orbwalker.LastAutoAttackTick + Player.AttackDelay * 1000 - 180)
+                            if (Game.Time * 1000 > Orbwalking.LastAATick + Player.AttackDelay * 1000 - 180)
                             {
                                 Player.IssueOrder(GameObjectOrder.AttackUnit, target);
                             }
@@ -98,15 +90,15 @@ namespace HastaKalistaBaby
                     }
                     break;
 
-                case OrbwalkerMode.LaneClear:
-                    if(root["spell.q"]["AutoQH"].GetValue<MenuBool>().Value)
+                case Orbwalking.OrbwalkingMode.LaneClear:
+                    if(root.Item("AutoQH").GetValue<bool>())
                     {
                         Qlogic();
                     }
 
                     break;
 
-                case OrbwalkerMode.Hybrid:
+                case Orbwalking.OrbwalkingMode.LastHit:
                     break;
             }
             WLogic();
@@ -120,12 +112,12 @@ namespace HastaKalistaBaby
 
         private static void Qlogic()
         {
-            if(!Q.IsReady() || !root["spell.q"]["AutoQ"].GetValue<MenuBool>().Value || Helper.GetMana(Q)<80)
+            if(!Q.IsReady() || !root.Item("AutoQ").GetValue<bool>() || Helper.GetMana(Q)<80)
             {
                 return;
             }
 
-            var target = TargetSelector.GetTarget(E.Range*1.2f,DamageType.Physical);
+            var target = TargetSelector.GetTarget(E.Range*1.2f,TargetSelector.DamageType.Physical);
             if (target.IsValidTarget())
             {
                 var predout = Q.GetPrediction(target);
@@ -133,9 +125,9 @@ namespace HastaKalistaBaby
 
                 if (coll.Count<1)
                 {
-                    Q.CastIfHitchanceMinimum(target, HitChance.High);
+                    Q.CastIfHitchanceEquals(target, HitChance.High);
                 }
-                if(coll.Count == 1 && root["spell.q"]["AutoQM"].GetValue<MenuBool>().Value)
+                if(coll.Count == 1 && root.Item("AutoQM").GetValue<bool>())
                 {
                     foreach (var c in coll)
                     {
@@ -152,12 +144,18 @@ namespace HastaKalistaBaby
 
         private static void WLogic()
         {
-            if(!W.IsReady() && Helper.GetMana(W)<80)
+            if(!W.IsReady() && Helper.GetMana(W)<80 && Game.Time - wtime < 2)
             {
                 return;
             }
 
-            if (root["spell.w"]["AutoW"].GetValue<MenuBool>().Value && Helper.CountEnemy(Player.Position,1500) == 0)
+            if(Helper.CountEnemy(Player.Position, 1300) > 0)
+            {
+                wtime = Game.Time;
+            }
+
+
+            if ((root.Item("AutoW").GetValue<bool>()||root.Item("WAll").GetValue<KeyBind>().Active) && Helper.CountEnemy(Player.Position,1300) == 0)
             {
                 if (wcount > 0)
                 {
@@ -165,7 +163,7 @@ namespace HastaKalistaBaby
                     baronPos.X = 5232;
                     baronPos.Y = 10788;
                     baronPos.Z = 0;
-                    if (Player.Distance(baronPos) < 5000 && root["spell.w"]["WBaron"].GetValue<MenuBool>().Value)
+                    if (Player.Distance(baronPos) < 5000)
                         W.Cast(baronPos);
                 }
                 if (wcount == 0)
@@ -174,7 +172,7 @@ namespace HastaKalistaBaby
                     dragonPos.X = 9919f;
                     dragonPos.Y = 4475f;
                     dragonPos.Z = 0f;
-                    if (Player.Distance(dragonPos) < 5000 && root["spell.w"]["WDrake"].GetValue<MenuBool>().Value)
+                    if (Player.Distance(dragonPos) < 5000)
                         W.Cast(dragonPos);
                     else
                         wcount++;
@@ -221,7 +219,7 @@ namespace HastaKalistaBaby
 
             foreach (var enemy in ObjectManager.Get<Obj_AI_Hero>().Where(x => x.IsEnemy && Helper.hasE(x) && !Helper.Unkillable(x) && x.Distance(Player) < 900 && !x.IsDead))
             {
-                if (root["spell.e"]["AutoEChamp"].GetValue<MenuBool>().Value)
+                if (root.Item("AutoEChamp").GetValue<bool>())
                 {
                     if (Damage.GetEdamage(enemy) > Helper.GetHealth(enemy))
                     {
@@ -240,7 +238,7 @@ namespace HastaKalistaBaby
 
             if (soulmate == null)
             {
-                foreach (var ally in GameObjects.AllyHeroes.Where(x => !x.IsDead && !x.IsMe && x.HasBuff("kalistacoopstrikeally")))
+                foreach (var ally in HeroManager.Allies.Where(x => !x.IsDead && !x.IsMe && x.HasBuff("kalistacoopstrikeally")))
                 {
                     soulmate = ally;
                     break;
@@ -258,21 +256,21 @@ namespace HastaKalistaBaby
                     {
                         return;
                     }
-                    foreach(var enemy in GameObjects.EnemyHeroes.Where(x=> !x.IsDead && !x.IsZombie && x.HasBuff("rocketgrab2")))
+                    foreach(var enemy in HeroManager.Enemies.Where(x=> !x.IsDead && !x.IsZombie && x.HasBuff("rocketgrab2")))
                     {
                         R.Cast();
                     }
                 }
                 if(soulmate.ChampionName == "TahmKench" && Player.Distance(soulmate.Position) > 300)
                 {
-                    foreach (var enemy in GameObjects.EnemyHeroes.Where(x => !x.IsDead && !x.IsZombie && x.HasBuff("tahmkenchwdevoured")))
+                    foreach (var enemy in HeroManager.Enemies.Where(x => !x.IsDead && !x.IsZombie && x.HasBuff("tahmkenchwdevoured")))
                     {
                         R.Cast();
                     }
                 }
                 if (soulmate.ChampionName == "Skarner" && Player.Distance(soulmate.Position) > 300)
                 {
-                    foreach (var enemy in GameObjects.EnemyHeroes.Where(x => !x.IsDead && !x.IsZombie && x.HasBuff("skarnerimpale")))
+                    foreach (var enemy in HeroManager.Enemies.Where(x => !x.IsDead && !x.IsZombie && x.HasBuff("skarnerimpale")))
                     {
                         R.Cast();
                     }
@@ -284,18 +282,18 @@ namespace HastaKalistaBaby
         private static void Items()
         {
             //Bilgewater's Cutlass
-            if (root["item"]["bilg"].GetValue<MenuBool>().Value)
+            if (root.Item("bilg").GetValue<bool>())
             {
-                if (bilgwat.IsOwned() && bilgwat.IsReady)
+                if (bilgwat.IsOwned() && bilgwat.IsReady())
                 {
-                    var target = TargetSelector.GetTarget(bilgwat.Range, DamageType.Physical);
+                    var target = TargetSelector.GetTarget(bilgwat.Range, TargetSelector.DamageType.Physical);
                     if (target != null && !target.IsZombie)
                     {
-                        if (target.HealthPercent <= root["item"]["enemyBotkr"].GetValue<MenuSlider>().Value)
+                        if (target.HealthPercent <= root.Item("enemyBotkr").GetValue<Slider>().Value)
                         {
                             bilgwat.Cast(target);
                         }
-                        if (Player.HealthPercent <= root["item"]["selfBotkr"].GetValue<MenuSlider>().Value)
+                        if (Player.HealthPercent <= root.Item("selfBotkr").GetValue<Slider>().Value)
                         {
                             bilgwat.Cast(target);
                         }
@@ -304,18 +302,18 @@ namespace HastaKalistaBaby
             }
 
             //Botrk
-            if (root["item"]["Botkr"].GetValue<MenuBool>().Value)
+            if (root.Item("Botkr").GetValue<bool>())
             {
-                if (botrk.IsOwned() && botrk.IsReady)
+                if (botrk.IsOwned() && botrk.IsReady())
                 {
-                    var target = TargetSelector.GetTarget(botrk.Range, DamageType.Physical);
+                    var target = TargetSelector.GetTarget(botrk.Range, TargetSelector.DamageType.Physical);
                     if (target != null && !target.IsZombie)
                     {
-                        if (target.HealthPercent <= root["item"]["enemyBotkr"].GetValue<MenuSlider>().Value)
+                        if (target.HealthPercent <= root.Item("enemyBotkr").GetValue<Slider>().Value)
                         {
                             botrk.Cast(target);
                         }
-                        if (Player.HealthPercent <= root["item"]["selfBotkr"].GetValue<MenuSlider>().Value)
+                        if (Player.HealthPercent <= root.Item("selfBotkr").GetValue<Slider>().Value)
                         {
                             botrk.Cast(target);
                         }
@@ -324,19 +322,19 @@ namespace HastaKalistaBaby
             }
 
             //Youumu
-            if (root["item"]["youm"].GetValue<MenuBool>().Value)
+            if (root.Item("youm").GetValue<bool>())
             {
-                if (yom.IsOwned() && yom.IsReady)
+                if (yom.IsOwned() && yom.IsReady())
                 {
-                    var target = TargetSelector.GetTarget(botrk.Range, DamageType.Mixed);
+                    var target = TargetSelector.GetTarget(botrk.Range, TargetSelector.DamageType.Physical);
                     {
                         if (target != null && !target.IsZombie)
                         {
-                            if (target.HealthPercent <= root["item"]["enemyYoumuus"].GetValue<MenuSlider>().Value)
+                            if (target.HealthPercent <= root.Item("enemyYoumuus").GetValue<Slider>().Value)
                             {
                                 yom.Cast();
                             }
-                            if (Player.HealthPercent <= root["item"]["selfYoumuus"].GetValue<MenuSlider>().Value)
+                            if (Player.HealthPercent <= root.Item("selfYoumuus").GetValue<Slider>().Value)
                             {
                                 yom.Cast();
                             }
@@ -344,6 +342,8 @@ namespace HastaKalistaBaby
                     }
                 }
             }
+
+
 
         }
 
@@ -354,26 +354,26 @@ namespace HastaKalistaBaby
                 return;
             }
 
-            var minions = GameObjects.EnemyMinions.Where(x => E.IsInRange(x)).ToList();
+            var minions = MinionManager.GetMinions(Orbwalking.GetRealAutoAttackRange(Player),MinionTypes.All,MinionTeam.Enemy).ToList();
 
             if (minions.Count == 0)
             { 
                 return;
             }
-            if (root["spell.e"]["AutoEMinions"].GetValue<MenuBool>().Value || root["spell.e"]["BigMinionFinisher"].GetValue<MenuBool>().Value || root["spell.e"]["AutoEMinionsTower"].GetValue<MenuBool>().Value)
+            if (root.Item("AutoEMinions").GetValue<bool>() || root.Item("BigMinionFinisher").GetValue<bool>() || root.Item("AutoEMinionsTower").GetValue<bool>())
             {
                 int killable = 0;
                 foreach(var m in minions)
                 {
-                    if (Damage.GetEdamage(m) > m.Health && Health.GetPrediction(m, 500) > Player.GetAutoAttackDamage(m) && m.GetBuff("kalistaexpungemarker").EndTime> 0.5)
+                    if (Damage.GetEdamage(m) > m.Health && HealthPrediction.GetHealthPrediction(m, 500, 250) > Player.GetAutoAttackDamage(m) && m.GetBuff("kalistaexpungemarker").EndTime> 0.5)
                     {
                         killable++;
-                        if (killable >= root["spell.e"]["minAutoEMinions"].GetValue<MenuSlider>().Value && root["spell.e"]["AutoEMinions"].GetValue<MenuBool>().Value || (m.CharData.BaseSkinName.ToLower().Contains("siege") || m.CharData.BaseSkinName.ToLower().Contains("super")) && root["spell.e"]["BigMinionFinisher"].GetValue<MenuBool>().Value)
+                        if (killable >= root.Item("minAutoEMinions").GetValue<Slider>().Value && root.Item("AutoEMinions").GetValue<bool>() || (m.CharData.BaseSkinName.ToLower().Contains("siege") || m.CharData.BaseSkinName.ToLower().Contains("super")) && root.Item("BigMinionFinisher").GetValue<bool>())
                         {
                             CastE();
                             break;
                         }
-                        if ((m.CharData.BaseSkinName.ToLower().Contains("siege") || m.CharData.BaseSkinName.ToLower().Contains("super")) && root["spell.e"]["AutoEMinionsTower"].GetValue<MenuBool>().Value && killable > 0 && m.IsUnderTurret())
+                        if ((m.CharData.BaseSkinName.ToLower().Contains("siege") || m.CharData.BaseSkinName.ToLower().Contains("super")) && root.Item("AutoEMinionsTower").GetValue<bool>() && killable > 0 && m.UnderTurret())
                         {
                             CastE();
                             break;
@@ -386,35 +386,35 @@ namespace HastaKalistaBaby
         private static void JungleClear()
         {
 
-            foreach (var jungle in ObjectManager.Get<Obj_AI_Minion>().Where(x => x.IsValidTarget(E.Range) && Helper.hasE(x) && !x.IsMinion&& (x.GetJungleType() == JungleType.Legendary || x.GetJungleType() == JungleType.Large || x.GetJungleType() == JungleType.Small || x.Name.Contains("Crab"))))
+            foreach (var jungle in MinionManager.GetMinions(E.Range,MinionTypes.All,MinionTeam.Neutral))
             {   
                 if (Damage.GetEdamage(jungle) > jungle.Health)
                 {
-                    if (jungle.Name.Contains("Red") && !jungle.Name.Contains("RedMini") && root["spell.e"]["RedM"].GetValue<MenuBool>().Value)
+                    if (jungle.Name.Contains("Red")  && root.Item("RedM").GetValue<bool>()  && !jungle.Name.Contains("RedMini"))
                     {
                         CastE();
                     }
-                    if (jungle.Name.Contains("Blue") && root["spell.e"]["BlueM"].GetValue<MenuBool>().Value && !jungle.Name.Contains("BlueMini"))
+                    if (jungle.Name.Contains("Blue") && root.Item("BlueM").GetValue<bool>() && !jungle.Name.Contains("BlueMini"))
                     {
                         CastE();
                     }
-                    if (jungle.Name.Contains("Baron") && root["spell.e"]["BaronM"].GetValue<MenuBool>().Value)
+                    if (jungle.Name.Contains("Baron") && root.Item("BaronM").GetValue<bool>())
                     {
                         CastE();
                     }
-                    if(jungle.Name.Contains("Dragon") && root["spell.e"]["DrakeM"].GetValue<MenuBool>().Value)
+                    if(jungle.Name.Contains("Dragon") && root.Item("DrakeM").GetValue<bool>())
                     {
                         CastE();
                     }
-                    if (jungle.GetJungleType() == JungleType.Large && root["spell.e"]["OtherM"].GetValue<MenuBool>().Value && (!jungle.Name.Contains("Red") && !jungle.Name.Contains("Blue")))
+                    if ((jungle.Name.Contains("Krug") || jungle.Name.Contains("Razor") || jungle.Name.Contains("wolf") || jungle.Name.Contains("Gromp")) && root.Item("OtherM").GetValue<bool>() && !jungle.Name.Contains("Mini"))
                     {
                         CastE();
                     }
-                    if(jungle.Name.Contains("Crab") && root["spell.e"]["MidM"].GetValue<MenuBool>().Value)
+                    if(jungle.Name.Contains("Crab") && root.Item("MidM").GetValue<bool>())
                     {
                         CastE();
                     }
-                    if(jungle.GetJungleType() == JungleType.Small && root["spell.e"]["SmallM"].GetValue<MenuBool>().Value && !jungle.Name.Contains("Crab"))
+                    if(jungle.Name.Contains("Mini") && root.Item("SmallM").GetValue<bool>() && !jungle.Name.Contains("Crab"))
                     {
                         CastE();
                     }
@@ -424,7 +424,7 @@ namespace HastaKalistaBaby
 
         private static void Drawing_OnDraw(EventArgs args)
         {
-            if(root["drawing"]["Qrange"].GetValue<MenuBool>().Value)
+            if(root.Item("Qrange").GetValue<bool>())
             {
                 if(Q.IsReady())
                 {
@@ -432,7 +432,7 @@ namespace HastaKalistaBaby
                 }
             }
 
-            if (root["drawing"]["Wrange"].GetValue<MenuBool>().Value)
+            if (root.Item("Wrange").GetValue<bool>())
             {
                 if (W.IsReady())
                 {
@@ -440,7 +440,7 @@ namespace HastaKalistaBaby
                 }
             }
 
-            if (root["drawing"]["Erange"].GetValue<MenuBool>().Value)
+            if (root.Item("Erange").GetValue<bool>())
             {
                 if (E.IsReady())
                 {
@@ -448,7 +448,7 @@ namespace HastaKalistaBaby
                 }
             }
 
-            if (root["drawing"]["Rrange"].GetValue<MenuBool>().Value)
+            if (root.Item("Rrange").GetValue<bool>())
             {
                 if (R.IsReady())
                 {
@@ -456,11 +456,11 @@ namespace HastaKalistaBaby
                 }
             }
 
-            if (root["drawing"]["Minionh"].GetValue<MenuBool>().Value)
+            if (root.Item("Minionh").GetValue<bool>())
             {
-                foreach (var e in GameObjects.Enemy.Where(x => !x.IsDead && x.IsValidTarget(E.Range + 500)))
+                foreach (var e in MinionManager.GetMinions(E.Range+500,MinionTypes.All,MinionTeam.Enemy))
                 {
-                    if (e is Obj_AI_Minion && Damage.GetEdamage(e) > e.Health)
+                    if (Damage.GetEdamage(e) > e.Health)
                     {
                         Vector3 p = new Vector3((int)e.Position.X, (int)e.Position.Y, (int)e.Position.Z);
                         var points = Helper.CalculateVertices(4, e.ScaleSkinCoef *30, 70, p);
@@ -470,9 +470,9 @@ namespace HastaKalistaBaby
                 }
             }
 
-            if (root["drawing"]["healthp"].GetValue<MenuBool>().Value)
+            if (root.Item("healthp").GetValue<bool>())
             {
-                foreach (var enemy in ObjectManager.Get<Obj_AI_Base>().Where(x => (x.IsHPBarRendered && x.IsValidTarget(E.Range) && Helper.hasE(x) && !x.IsMinion && !x.Name.Contains("Mini")) && (x.IsEnemy || x.GetJungleType() == JungleType.Legendary || x.Name.Contains("Crab"))))
+                foreach (var enemy in ObjectManager.Get<Obj_AI_Base>().Where(x => (x.IsHPBarRendered && x.IsValidTarget(E.Range) && Helper.hasE(x) && !x.IsMinion && !x.Name.Contains("Mini")) && (x.IsEnemy || x.Name.Contains("Krug") || x.Name.Contains("Razor") || x.Name.Contains("wolf") || x.Name.Contains("Gromp") || x.Name.Contains("Crab") || x.Name.Contains("Blue") || x.Name.Contains("Red"))))
                 {
                     float hp = Helper.GetHealth(enemy) - Damage.GetEdamage(enemy);
                     var dmg = ((int)((Damage.GetEdamage(enemy) / Helper.GetHealth(enemy)) * 100));
@@ -481,22 +481,22 @@ namespace HastaKalistaBaby
                     {
                         Text.DrawText(null, dmg.ToString(), (int)enemy.HPBarPosition.X + 108, (int)enemy.HPBarPosition.Y + 41, SharpDX.Color.Black);
                         Text.DrawText(null, "%", (int)enemy.HPBarPosition.X + 125, (int)enemy.HPBarPosition.Y + 41, SharpDX.Color.Black);
-                        Text.DrawText(null, dmg.ToString() + "%", (int)enemy.HPBarPosition.X + 110, (int)enemy.HPBarPosition.Y + 40, root["drawing"]["colorp"].GetValue<MenuColor>().Color);
+                        Text.DrawText(null, dmg.ToString() + "%", (int)enemy.HPBarPosition.X + 110, (int)enemy.HPBarPosition.Y + 40, SharpDX.Color.WhiteSmoke);
                     }
                     if(dmg >= 10)
                     {
                         Text.DrawText(null, dmg.ToString(), (int)enemy.HPBarPosition.X + 108, (int)enemy.HPBarPosition.Y + 41, SharpDX.Color.Black);
                         Text.DrawText(null, "%", (int)enemy.HPBarPosition.X + 138, (int)enemy.HPBarPosition.Y + 41, SharpDX.Color.Black);
-                        Text.DrawText(null, dmg.ToString() + "%", (int)enemy.HPBarPosition.X + 110, (int)enemy.HPBarPosition.Y + 40, root["drawing"]["colorp"].GetValue<MenuColor>().Color);
+                        Text.DrawText(null, dmg.ToString() + "%", (int)enemy.HPBarPosition.X + 110, (int)enemy.HPBarPosition.Y + 40, SharpDX.Color.WhiteSmoke);
                     }
                 }
             }
 
-            if (root["drawing"]["Target"].GetValue<MenuBool>().Value)
+            if (root.Item("Target").GetValue<bool>())
             {
                 if (!Player.IsDead)
                 {
-                    var t = TargetSelector.GetTarget(E.Range, DamageType.Physical);
+                    var t = TargetSelector.GetTarget(E.Range, TargetSelector.DamageType.Physical);
                     if(Game.Time - time < 1)
                     {
                         i = i + 0.5;    
@@ -512,7 +512,7 @@ namespace HastaKalistaBaby
                     PolygonDraw(p, points, (float)2.5, Color.LightYellow);
                     time = Game.Time;
 
-                    if (root["drawing"]["TargetA"].GetValue<MenuBool>().Value)
+                    if (root.Item("TargetA").GetValue<bool>())
                     {
                         if (Player.Distance(t) > Helper.GetAttackRange(t))
                         {

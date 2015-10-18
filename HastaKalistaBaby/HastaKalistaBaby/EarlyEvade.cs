@@ -1,18 +1,11 @@
 ﻿using LeagueSharp;
-using LeagueSharp.SDK.Core;
-using LeagueSharp.SDK.Core.Extensions;
-using LeagueSharp.SDK.Core.Extensions.SharpDX;
-using LeagueSharp.SDK.Core.Math;
-using LeagueSharp.SDK.Core.Math.Polygons;
-using LeagueSharp.SDK.Core.UI.IMenu.Values;
+using LeagueSharp.Common;
 using SharpDX;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
-using Menu = LeagueSharp.SDK.Core.UI.IMenu.Menu;
 
 namespace HastaKalistaBaby
 {
@@ -21,10 +14,10 @@ namespace HastaKalistaBaby
     {
         public string ChampionName { get; set; }
         public string SpellName { get; set; }
-
         public int Width { get; set; }
         public float Range { get; set; }
         public System.Drawing.Color Color { get; set; }
+        public SharpDX.Color c { get; set; }
     }
     internal class EarlyEvade
     {
@@ -36,28 +29,28 @@ namespace HastaKalistaBaby
             this.Load();
 
             Menu EE = new Menu("Early Evade", "EarlyEvade");
-            EE.Add(new MenuSeparator("EESettings", "Early Evade Settings"));
-            EE.Add(new MenuBool("Enabled", "Enabled", true));
-            EE.Add(new MenuBool("drawline", "Draw Line", true));
-            EE.Add(new MenuBool("drawtext", "Draw Text", true));
+            EE.AddItem(new MenuItem("EESettings", "Early Evade Settings"));
+            EE.AddItem(new MenuItem("Enabled", "Enabled").SetValue(true));
+            EE.AddItem(new MenuItem("drawline", "Draw Line").SetValue(true));
+            EE.AddItem(new MenuItem("drawtext", "Draw Text").SetValue(true));
 
-            foreach (var e in GameObjects.EnemyHeroes)
+            foreach (var e in HeroManager.Enemies)
             {
                 foreach (var eList in this.EarlyList)
                 {
                     if (eList.ChampionName == e.ChampionName)
                     {
-                        EE.Add(new MenuBool(eList.ChampionName + eList.SpellName, eList.ChampionName + eList.SpellName, true));
+                        EE.AddItem(new MenuItem(eList.ChampionName + eList.SpellName, eList.ChampionName + eList.SpellName).SetValue(true)).SetFontStyle(System.Drawing.FontStyle.Regular,eList.c);
                     }
 
                     if (e.ChampionName == "Vayne")
                     {
-                        var vayne = new MenuBool("VayneE", "Vayne E", true);
+                        EE.AddItem(new MenuItem("VayneE", "Vayne E").SetValue(true)).SetFontStyle(System.Drawing.FontStyle.Regular,Color.Silver);
                     }
                 }
             }
 
-            draw.Add(EE);
+            draw.AddSubMenu(EE);
 
             Drawing.OnDraw += Drawing_OnDraw;
 
@@ -65,21 +58,21 @@ namespace HastaKalistaBaby
 
         private void Drawing_OnDraw(EventArgs args)
         {
-            if (!draw["Early Evade"]["Enabled"].GetValue<MenuBool>().Value)
+            if (!root.Item("Enabled").GetValue<bool>())
             {
                 return;
             }
 
-            if (draw["Early Evade"]["VayneE"] != null)
+            if (root.Item("VayneE") != null)
             {
-                foreach (var e in GameObjects.EnemyHeroes.Where(e => e.ChampionName.ToLower() == "vayne" && e.Distance(Program.Player.Position) < 900))
+                foreach (var e in HeroManager.Enemies.Where(e => e.ChampionName.ToLower() == "vayne" && e.Distance(Program.Player.Position) < 900))
                 {
                     for (var i = 1; i < 8; i++)
                     {
                         var championBehind = ObjectManager.Player.Position
                                              + Vector3.Normalize(e.ServerPosition - ObjectManager.Player.Position)
                                              * (-i * 50);
-                        if (draw["Early Evade"]["drawline"].GetValue<MenuBool>().Value)
+                        if (draw.Item("drawline").GetValue<bool>())
                         {
                             Drawing.DrawCircle(championBehind, 35f, championBehind.IsWall() ? System.Drawing.Color.Red : System.Drawing.Color.Gray);
                         }
@@ -87,13 +80,13 @@ namespace HastaKalistaBaby
                 }
             }
 
-            foreach (var e in GameObjects.EnemyHeroes.Where(e => e.IsValidTarget(2000)))
+            foreach (var e in HeroManager.Enemies.Where(e => e.IsValidTarget(2000)))
             {
                 foreach (var eList in this.EarlyList)
                 {
                     if (eList.ChampionName == e.ChampionName)
                     {
-                        if (draw["Early Evade"][eList.ChampionName + eList.SpellName].GetValue<MenuBool>().Value)
+                        if (draw.Item(eList.ChampionName + eList.SpellName).GetValue<bool>())
                         {
                             var xminions = 0;
                             if (e.IsValidTarget(eList.Range))
@@ -108,9 +101,9 @@ namespace HastaKalistaBaby
                                                          * (i * eList.Width);
 
                                     var list = eList;
-                                    var allies = GameObjects.AllyHeroes.Where(a => a.Distance(ObjectManager.Player.Position) < list.Range);
-                                    var minions = GameObjects.AllyMinions.Where(x => x.IsValidTarget(eList.Range));
-                                    var mobs = GameObjects.Jungle.Where(x => x.IsValidTarget(eList.Range));
+                                    var allies = HeroManager.Allies.Where(a => a.Distance(ObjectManager.Player.Position) < list.Range);
+                                    var minions = MinionManager.GetMinions(ObjectManager.Player.Position, eList.Range,MinionTypes.All, MinionTeam.Ally);
+                                    var mobs = MinionManager.GetMinions(ObjectManager.Player.Position,eList.Range,MinionTypes.All,MinionTeam.Neutral);
 
                                     xminions += minions.Count(m => m.Distance(championBehind) < eList.Width)
                                                 + allies.Count(a => a.Distance(championBehind) < eList.Width)
@@ -119,13 +112,13 @@ namespace HastaKalistaBaby
 
                                 if (xminions == 0)
                                 {
-                                    if (draw["Early Evade"]["drawline"].GetValue<MenuBool>().Value)
+                                    if (draw.Item("drawline").GetValue<bool>())
                                     {
-                                        var rec = new LeagueSharp.SDK.Core.Math.Polygons.Rectangle(ObjectManager.Player.Position, e.Position, eList.Width - 10);
+                                        var rec = new Geometry.Polygon.Rectangle(ObjectManager.Player.Position, e.Position, eList.Width - 10);
                                         rec.Draw(eList.Color, 2);
                                     }
 
-                                    if (draw["Early Evade"]["drawtext"].GetValue<MenuBool>().Value)
+                                    if (draw.Item("drawtext").GetValue<bool>())
                                     {
                                         Vector3[] x = new[] { ObjectManager.Player.Position, e.Position };
                                         var aX =
@@ -154,7 +147,8 @@ namespace HastaKalistaBaby
                     SpellName = "E",
                     Width = 75,
                     Range = 1200,
-                    Color = System.Drawing.Color.DarkViolet
+                    Color = System.Drawing.Color.DarkViolet,
+                    c = Color.DarkViolet
                 });
             this.EarlyList.Add(
                 new EarlyList
@@ -163,7 +157,8 @@ namespace HastaKalistaBaby
                     SpellName = "Q",
                     Width = 75,
                     Range = 1200,
-                    Color = System.Drawing.Color.Violet
+                    Color = System.Drawing.Color.Violet,
+                    c = Color.Violet
                 });
             this.EarlyList.Add(
                 new EarlyList
@@ -172,7 +167,8 @@ namespace HastaKalistaBaby
                     SpellName = "Q",
                     Width = 75,
                     Range = 1200,
-                    Color = System.Drawing.Color.LightGoldenrodYellow
+                    Color = System.Drawing.Color.LightGoldenrodYellow,
+                    c = Color.LightGoldenrodYellow
                 });
             this.EarlyList.Add(
                 new EarlyList
@@ -181,7 +177,8 @@ namespace HastaKalistaBaby
                     SpellName = "Q",
                     Width = 75,
                     Range = 1200,
-                    Color = System.Drawing.Color.LimeGreen
+                    Color = System.Drawing.Color.LimeGreen,
+                    c = Color.LimeGreen
                 });
             this.EarlyList.Add(
                 new EarlyList
@@ -190,7 +187,8 @@ namespace HastaKalistaBaby
                     SpellName = "Q",
                     Width = 75,
                     Range = 1200,
-                    Color = System.Drawing.Color.LightCyan
+                    Color = System.Drawing.Color.LightCyan,
+                    c = Color.LightCyan
                 });
             this.EarlyList.Add(
                 new EarlyList
@@ -199,7 +197,8 @@ namespace HastaKalistaBaby
                     SpellName = "Q",
                     Width = 75,
                     Range = 1200,
-                    Color = System.Drawing.Color.LightYellow
+                    Color = System.Drawing.Color.LightYellow,
+                    c = Color.LightYellow
                 });
             this.EarlyList.Add(
                 new EarlyList
@@ -208,7 +207,8 @@ namespace HastaKalistaBaby
                     SpellName = "Q",
                     Width = 75,
                     Range = 1200,
-                    Color = System.Drawing.Color.DarkGoldenrod
+                    Color = System.Drawing.Color.DarkGoldenrod,
+                    c = Color.DarkGoldenrod
                 });
             this.EarlyList.Add(
                 new EarlyList
@@ -217,7 +217,8 @@ namespace HastaKalistaBaby
                     SpellName = "R",
                     Width = 75,
                     Range = 1500,
-                    Color = System.Drawing.Color.WhiteSmoke
+                    Color = System.Drawing.Color.WhiteSmoke,
+                    c = Color.WhiteSmoke
                 });
             this.EarlyList.Add(
                 new EarlyList
@@ -226,7 +227,8 @@ namespace HastaKalistaBaby
                     SpellName = "Q",
                     Width = 75,
                     Range = 1000,
-                    Color = System.Drawing.Color.BlanchedAlmond
+                    Color = System.Drawing.Color.BlanchedAlmond,
+                    c = Color.BlanchedAlmond
                 });
             this.EarlyList.Add(
                 new EarlyList
@@ -235,7 +237,8 @@ namespace HastaKalistaBaby
                     SpellName = "Q",
                     Width = 75,
                     Range = 1000,
-                    Color = System.Drawing.Color.LightSkyBlue
+                    Color = System.Drawing.Color.LightSkyBlue,
+                    c = Color.LightSkyBlue
                 });
             this.EarlyList.Add(
                 new EarlyList
@@ -244,7 +247,8 @@ namespace HastaKalistaBaby
                     SpellName = "Q",
                     Width = 75,
                     Range = 1000,
-                    Color = System.Drawing.Color.LightSlateGray
+                    Color = System.Drawing.Color.LightSlateGray,
+                    c = Color.LightSlateGray
                 });
             this.EarlyList.Add(
                 new EarlyList
@@ -253,7 +257,8 @@ namespace HastaKalistaBaby
                     SpellName = "Q",
                     Width = 75,
                     Range = 1000,
-                    Color = System.Drawing.Color.Black
+                    Color = System.Drawing.Color.Black,
+                    c = Color.Black
                 });
             this.EarlyList.Add(
                 new EarlyList
@@ -262,7 +267,8 @@ namespace HastaKalistaBaby
                     SpellName = "Q",
                     Width = 75,
                     Range = 1500,
-                    Color = System.Drawing.Color.Beige
+                    Color = System.Drawing.Color.Beige,
+                    c = Color.Beige
                 });
             this.EarlyList.Add(
                 new EarlyList
@@ -271,7 +277,8 @@ namespace HastaKalistaBaby
                     SpellName = "Q",
                     Width = 75,
                     Range = 850,
-                    Color = System.Drawing.Color.DarkBlue
+                    Color = System.Drawing.Color.DarkBlue,
+                    c = Color.DarkBlue
                 });
             this.EarlyList.Add(
                 new EarlyList
@@ -280,7 +287,8 @@ namespace HastaKalistaBaby
                     SpellName = "Q",
                     Width = 75,
                     Range = 850,
-                    Color = System.Drawing.Color.HotPink
+                    Color = System.Drawing.Color.HotPink,
+                    c = Color.HotPink
                 });
             this.EarlyList.Add(
                 new EarlyList
@@ -289,7 +297,8 @@ namespace HastaKalistaBaby
                     SpellName = "Q",
                     Width = 75,
                     Range = 1200,
-                    Color = System.Drawing.Color.DarkSeaGreen
+                    Color = System.Drawing.Color.DarkSeaGreen,
+                    c = Color.DarkSeaGreen
                 });
             this.EarlyList.Add(
                 new EarlyList
@@ -298,7 +307,8 @@ namespace HastaKalistaBaby
                     SpellName = "E",
                     Width = 75,
                     Range = 900,
-                    Color = System.Drawing.Color.AliceBlue
+                    Color = System.Drawing.Color.AliceBlue,
+                    c = Color.AliceBlue
                 });
         }
 
