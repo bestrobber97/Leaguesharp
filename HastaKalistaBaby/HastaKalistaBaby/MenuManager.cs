@@ -1,5 +1,5 @@
 ﻿using LeagueSharp.Common;
-using System.Drawing;
+using SharpDX;
 
 namespace HastaKalistaBaby
 {
@@ -11,7 +11,7 @@ namespace HastaKalistaBaby
         {
             var q = new Menu("Q Settings", "spell.q");
             {
-                q.AddItem(new MenuItem("Qsetting", "Q Settings"));
+                q.AddItem(new MenuItem("Qsetting", "Q Settings")).SetFontStyle(System.Drawing.FontStyle.Bold, Color.Red);
                 q.AddItem(new MenuItem("AutoQ", "Enable Q").SetValue(true));
                 q.AddItem(new MenuItem("AutoQH", "Auto Q Harass").SetValue(true));
                 q.AddItem(new MenuItem("AutoQM", "Auto Q Across Minions").SetValue(true));
@@ -20,7 +20,7 @@ namespace HastaKalistaBaby
 
             var w = new Menu("W Settings", "spell.w");
             {
-                w.AddItem(new MenuItem("Wsetting", "W Settings"));
+                w.AddItem(new MenuItem("Wsetting", "W Settings")).SetFontStyle(System.Drawing.FontStyle.Bold, Color.RosyBrown);
                 w.AddItem(new MenuItem("AutoW", "Auto W").SetValue(true));
                 w.AddItem(new MenuItem("WAll", "Cast W on Nearest Monster").SetValue(new KeyBind('A',KeyBindType.Press)));
                 root.AddSubMenu(w);
@@ -28,7 +28,7 @@ namespace HastaKalistaBaby
 
             var e = new Menu("E Settings", "spell.e");
             {
-                e.AddItem(new MenuItem("Esetting", "E Settings"));
+                e.AddItem(new MenuItem("Esetting", "E Settings")).SetFontStyle(System.Drawing.FontStyle.Bold, Color.Blue);
                 e.AddItem(new MenuItem("AutoEChamp", "Auto E On Champions").SetValue(true));
                 e.AddItem(new MenuItem("jEsetting", "Jungle Settings"));
                 e.AddItem(new MenuItem("BlueM", "Auto E Blue").SetValue(true));
@@ -38,7 +38,7 @@ namespace HastaKalistaBaby
                 e.AddItem(new MenuItem("SmallM", "Auto E Smalls").SetValue(false));
                 e.AddItem(new MenuItem("OtherM", "Auto E Gromp/Wolf/Krug/Raptor").SetValue(true));
                 e.AddItem(new MenuItem("MidM", "Auto E Crab").SetValue(true));
-                e.AddItem(new MenuItem("lEsetting", "LaneClear Settings"));
+                e.AddItem(new MenuItem("lEsetting", "LaneClear Settings")).SetFontStyle(System.Drawing.FontStyle.Bold, Color.ForestGreen);
                 e.AddItem(new MenuItem("AutoEMinions", "Auto E Minions").SetValue(true));
                 e.AddItem(new MenuItem("minAutoEMinions", "Min minions").SetValue(new Slider(2,1,5)));
                 e.AddItem(new MenuItem("BigMinionFinisher", "Auto E Big Minions").SetValue(true));
@@ -48,7 +48,7 @@ namespace HastaKalistaBaby
 
             var r = new Menu("R Settings", "spell.r");
             {
-                r.AddItem(new MenuItem("Rsetting", "R Settings"));
+                r.AddItem(new MenuItem("Rsetting", "R Settings")).SetFontStyle(System.Drawing.FontStyle.Bold, Color.BlueViolet);
                 r.AddItem(new MenuItem("AutoR", "Auto R Saver").SetValue(true));
                 r.AddItem(new MenuItem("KBS", "Auto R BlitzCrank/Skarner/Kench").SetValue(true));
                 root.AddSubMenu(r);
@@ -56,15 +56,15 @@ namespace HastaKalistaBaby
 
             var item = new Menu("Item Settings", "item");
             {
-                item.AddItem(new MenuItem("bilgwater", "Bilgewater's Cutlass"));
+                item.AddItem(new MenuItem("bilgwater", "Bilgewater's Cutlass")).SetFontStyle(System.Drawing.FontStyle.Bold, Color.Orange);
                 item.AddItem(new MenuItem("bilg", "Bilgewater's Cutlass").SetValue(true));
                 item.AddItem(new MenuItem("enemybilg", "Use on Enemy HP % <=").SetValue(new Slider(90, 0, 100)));
                 item.AddItem(new MenuItem("selfbilg", "Use on Self HP % <=").SetValue(new Slider(25, 0, 100)));
-                item.AddItem(new MenuItem("botrk", "Blade of the Ruined King"));
+                item.AddItem(new MenuItem("botrk", "Blade of the Ruined King")).SetFontStyle(System.Drawing.FontStyle.Bold, Color.OrangeRed);
                 item.AddItem(new MenuItem("Botkr", "Blade of the Ruined King").SetValue(true));
                 item.AddItem(new MenuItem("enemyBotkr", "Use on Enemy HP % <=").SetValue(new Slider(90, 0, 100)));
                 item.AddItem(new MenuItem("selfBotkr", "Use on Self HP % <=").SetValue(new Slider(25, 0, 100)));
-                item.AddItem(new MenuItem("Youmus", "Youmuus Ghostblade"));
+                item.AddItem(new MenuItem("Youmus", "Youmuus Ghostblade")).SetFontStyle(System.Drawing.FontStyle.Bold, Color.HotPink);
                 item.AddItem(new MenuItem("youm", "Youmuus Ghostblade").SetValue(true));
                 item.AddItem(new MenuItem("enemyYoumuus","Use on Enemy HP % <=").SetValue(new Slider(95, 0, 100)));
                 item.AddItem(new MenuItem("selfYoumuus", "Use on Self HP % <=").SetValue(new Slider(95, 0, 100)));
@@ -72,7 +72,7 @@ namespace HastaKalistaBaby
             }
 
             {
-                draw.AddItem(new MenuItem("Dsetting", "Drawing Settings"));
+                draw.AddItem(new MenuItem("Dsetting", "Drawing Settings")).SetFontStyle(System.Drawing.FontStyle.Bold, Color.GreenYellow);
                 draw.AddItem(new MenuItem("Qrange", "Draw Q Range").SetValue(false));
                 draw.AddItem(new MenuItem("Wrange", "Draw W Range").SetValue(false));
                 draw.AddItem(new MenuItem("Erange", "Draw E Range").SetValue(true));
@@ -86,7 +86,7 @@ namespace HastaKalistaBaby
 
             var lvl = new Menu("Level Settigns", "lvl");
             {
-                lvl.AddItem(new MenuItem("Dsetting", "Level Settings"));
+                lvl.AddItem(new MenuItem("Dsetting", "Level Settings")).SetFontStyle(System.Drawing.FontStyle.Bold, Color.Snow);
                 lvl.AddItem(new MenuItem("Lvlon", "Enable Level Up").SetValue(true));
                 lvl.AddItem(new MenuItem("1", "1").SetValue(new StringList(new[] { "Q", "W", "E", "R"},3)));
                 lvl.AddItem(new MenuItem("2", "2").SetValue(new StringList(new[] { "Q", "W", "E", "R" }, 1)));
@@ -96,9 +96,9 @@ namespace HastaKalistaBaby
                 root.AddSubMenu(lvl);
             }
 
-            var ex = new Menu("Exploit Settings", "ExploitOP");
+            var ex = new Menu("Exploit Settings", "ExploitOP").SetFontStyle(System.Drawing.FontStyle.Bold, Color.Red);
             {
-                ex.AddItem(new MenuItem("EXsetting", "Exploit Settings"));
+                ex.AddItem(new MenuItem("EXsetting", "Exploit Settings")).SetFontStyle(System.Drawing.FontStyle.Bold, Color.OrangeRed);
                 ex.AddItem(new MenuItem("Fly", "Activate Exploit").SetValue(false));
                 root.AddSubMenu(ex);
             }

@@ -28,8 +28,8 @@ namespace HastaKalistaBaby
         {
             this.Load();
 
-            Menu EE = new Menu("Early Evade", "EarlyEvade");
-            EE.AddItem(new MenuItem("EESettings", "Early Evade Settings"));
+            Menu EE = new Menu("Early Evade", "EarlyEvade").SetFontStyle(System.Drawing.FontStyle.Bold, Color.Red);
+            EE.AddItem(new MenuItem("EESettings", "Early Evade Settings")).SetFontStyle(System.Drawing.FontStyle.Bold, Color.Yellow);
             EE.AddItem(new MenuItem("Enabled", "Enabled").SetValue(true));
             EE.AddItem(new MenuItem("drawline", "Draw Line").SetValue(true));
             EE.AddItem(new MenuItem("drawtext", "Draw Text").SetValue(true));

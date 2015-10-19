@@ -172,6 +172,10 @@ namespace HastaKalistaBaby
             return CurrentMana - Spellcost;
         }
 
+        public static float AttackSpeed()
+        {
+            return 1 / Program.Player.AttackDelay;
+        }
 
     }
 }
