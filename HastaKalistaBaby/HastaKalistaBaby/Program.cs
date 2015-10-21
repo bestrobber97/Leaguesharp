@@ -505,7 +505,7 @@ namespace HastaKalistaBaby
 
             if (root.Item("Minionh").GetValue<bool>())
             {
-                foreach (var e in MinionManager.GetMinions(E.Range+500,MinionTypes.All,MinionTeam.Enemy))
+                foreach (var e in ObjectManager.Get<Obj_AI_Base>().Where(x=> x.IsMinion && Helper.hasE(x) && x.IsValidTarget(E.Range + 250)))
                 {
                     if (Damage.GetEdamage(e) > e.Health)
                     {
@@ -519,7 +519,7 @@ namespace HastaKalistaBaby
 
             if (root.Item("healthp").GetValue<bool>())
             {
-                foreach (var enemy in ObjectManager.Get<Obj_AI_Base>().Where(x => (x.IsHPBarRendered && x.IsValidTarget(E.Range) && Helper.hasE(x) && !x.IsMinion && !x.Name.Contains("Mini")) && (x.IsEnemy || x.Name.Contains("Krug") || x.Name.Contains("Razor") || x.Name.Contains("wolf") || x.Name.Contains("Gromp") || x.Name.Contains("Crab") || x.Name.Contains("Blue") || x.Name.Contains("Red"))))
+                foreach (var enemy in ObjectManager.Get<Obj_AI_Base>().Where(x => (x.IsValidTarget(E.Range) && Helper.hasE(x) && !x.IsMinion && !x.Name.Contains("Mini")) && (x.IsEnemy || x.Name.Contains("Krug") || x.Name.Contains("Razor") || x.Name.Contains("wolf") || x.Name.Contains("Gromp") || x.Name.Contains("Crab") || x.Name.Contains("Blue") || x.Name.Contains("Red"))))
                 {
                     float hp = Helper.GetHealth(enemy) - Damage.GetEdamage(enemy);
                     var dmg = ((int)((Damage.GetEdamage(enemy) / Helper.GetHealth(enemy)) * 100));
