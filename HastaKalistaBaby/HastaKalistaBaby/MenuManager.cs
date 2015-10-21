@@ -81,6 +81,7 @@ namespace HastaKalistaBaby
                 draw.AddItem(new MenuItem("Target", "Draw Current Target").SetValue(true));
                 draw.AddItem(new MenuItem("TargetA", "Draw Target Attack Range").SetValue(true));
                 draw.AddItem(new MenuItem("Minionh", "Draw killable minions").SetValue(true));
+                draw.AddItem(new MenuItem("fps", "Reduce FPS usage (If you want style put this off)").SetValue(false));
                 root.AddSubMenu(draw);
             }
 

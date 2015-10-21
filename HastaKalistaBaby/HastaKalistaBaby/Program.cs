@@ -447,7 +447,14 @@ namespace HastaKalistaBaby
             {
                 if(Q.IsReady())
                 {
-                    Drawing.DrawCircle(Player.Position, Q.Range, Color.Violet);
+                    if (root.Item("fps").GetValue<bool>())
+                    {
+                        Render.Circle.DrawCircle(Player.Position, Q.Range, Color.Violet);
+                    }
+                    else
+                    {
+                        Drawing.DrawCircle(Player.Position, Q.Range, Color.Violet);
+                    }
                 }
             }
 
@@ -455,7 +462,14 @@ namespace HastaKalistaBaby
             {
                 if (W.IsReady())
                 {
-                    Drawing.DrawCircle(Player.Position, W.Range, Color.Cyan);
+                    if (root.Item("fps").GetValue<bool>())
+                    {
+                        Render.Circle.DrawCircle(Player.Position, W.Range, Color.Cyan);
+                    }
+                    else
+                    {
+                        Drawing.DrawCircle(Player.Position, W.Range, Color.Cyan);
+                    }
                 }
             }
 
@@ -463,7 +477,14 @@ namespace HastaKalistaBaby
             {
                 if (E.IsReady())
                 {
-                    Drawing.DrawCircle(Player.Position, E.Range, Color.Orange);
+                    if (root.Item("fps").GetValue<bool>())
+                    {
+                        Render.Circle.DrawCircle(Player.Position, E.Range, Color.Orange);
+                    }
+                    else
+                    {
+                        Drawing.DrawCircle(Player.Position, E.Range, Color.Orange);
+                    }
                 }
             }
 
@@ -471,7 +492,14 @@ namespace HastaKalistaBaby
             {
                 if (R.IsReady())
                 {
-                    Drawing.DrawCircle(Player.Position, R.Range, Color.Gray);
+                    if (root.Item("fps").GetValue<bool>())
+                    {
+                        Render.Circle.DrawCircle(Player.Position, R.Range, Color.Gray);
+                    }
+                    else
+                    {
+                        Drawing.DrawCircle(Player.Position, R.Range, Color.Gray);
+                    }
                 }
             }
 
@@ -484,7 +512,7 @@ namespace HastaKalistaBaby
                         Vector3 p = new Vector3((int)e.Position.X, (int)e.Position.Y, (int)e.Position.Z);
                         var points = Helper.CalculateVertices(4, e.ScaleSkinCoef *30, 70, p);
 
-                        PolygonDraw(p, points, 3, Color.LightGreen);
+                        PolygonDraw(p, points, 2, Color.LightGreen);
                     }
                 }
             }
@@ -516,30 +544,52 @@ namespace HastaKalistaBaby
                 if (!Player.IsDead)
                 {
                     var t = TargetSelector.GetTarget(E.Range, TargetSelector.DamageType.Physical);
-                    if(Game.Time - time < 1)
+
+                    if (root.Item("fps").GetValue<bool>())
                     {
-                        i = i + 0.5;    
+                        Render.Circle.DrawCircle(t.Position, t.ScaleSkinCoef * 65, Color.Gold);
                     }
-                    if(i>360)
+                    else
                     {
-                        i = 0;
+                        if (Game.Time - time < 1)
+                        {
+                            i = i + 0.5;
+                        }
+                        if (i > 360)
+                        {
+                            i = 0;
+                        }
+                        Vector3 p = new Vector3((int)t.Position.X, (int)t.Position.Y, (int)t.Position.Z);
+                        var points = Helper.CalculateVertices(3, t.ScaleSkinCoef * 65, (int)i, p);
+                        var points1 = Helper.CalculateVertices(11, t.ScaleSkinCoef * 73, (int)-i, p);
+                        PolygonDraw(p, points1, (float)3, Color.Gold);
+                        PolygonDraw(p, points, (float)2.5, Color.LightYellow);
+                        time = Game.Time;
                     }
-                    Vector3 p = new Vector3((int)t.Position.X, (int)t.Position.Y, (int)t.Position.Z);
-                    var points = Helper.CalculateVertices(3, t.ScaleSkinCoef * 65, (int)i, p);
-                    var points1 = Helper.CalculateVertices(11, t.ScaleSkinCoef * 73, (int)-i, p);
-                    PolygonDraw(p, points1, (float)3, Color.Gold);
-                    PolygonDraw(p, points, (float)2.5, Color.LightYellow);
-                    time = Game.Time;
 
                     if (root.Item("TargetA").GetValue<bool>())
                     {
-                        if (Player.Distance(t) > Helper.GetAttackRange(t))
+                        if (root.Item("fps").GetValue<bool>())
                         {
-                            Drawing.DrawCircle(t.Position, Helper.GetAttackRange(t), Color.ForestGreen);
+                            if (Player.Distance(t) > Helper.GetAttackRange(t))
+                            {
+                                Render.Circle.DrawCircle(t.Position, Helper.GetAttackRange(t), Color.ForestGreen);
+                            }
+                            else
+                            {
+                                Render.Circle.DrawCircle(t.Position, Helper.GetAttackRange(t), Color.OrangeRed);
+                            }
                         }
                         else
                         {
-                            Drawing.DrawCircle(t.Position, Helper.GetAttackRange(t), Color.OrangeRed);
+                            if (Player.Distance(t) > Helper.GetAttackRange(t))
+                            {
+                                Drawing.DrawCircle(t.Position, Helper.GetAttackRange(t), Color.ForestGreen);
+                            }
+                            else
+                            {
+                                Drawing.DrawCircle(t.Position, Helper.GetAttackRange(t), Color.OrangeRed);
+                            }
                         }
                     }
                 }
