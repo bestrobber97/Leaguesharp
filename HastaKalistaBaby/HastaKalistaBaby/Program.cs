@@ -12,11 +12,14 @@ namespace HastaKalistaBaby
     internal class Program
     {
         public static readonly Obj_AI_Hero Player = ObjectManager.Player;
-        public static Menu root,draw;
+        public static Menu root, draw;
         public static Spell Q, W, E, R;
         static Items.Item botrk = new Items.Item(3153, 550);
         static Items.Item yom = new Items.Item(3142, 750);
         static Items.Item bilgwat = new Items.Item(3144, 550);
+        static Items.Item healthpotion = new Items.Item(2003, 0);
+        static Items.Item manapotion = new Items.Item(2004, 0);
+        static Items.Item flask = new Items.Item(2041, 0);
         public static EarlyEvade ee;
         public static Orbwalking.Orbwalker Orbwalker;
         public static int wcount = 0;
@@ -24,7 +27,7 @@ namespace HastaKalistaBaby
         public static Font Text;
         public static float grabT = Game.Time, lastecast = 0f;
         public static double i;
-        public static float time,wtime;
+        public static float time, wtime;
         public static Obj_AI_Hero soulmate = null;
 
 
@@ -53,6 +56,7 @@ namespace HastaKalistaBaby
             Orbwalker = new Orbwalking.Orbwalker(root.SubMenu("Orbwalker Settings"));
 
             MenuManager.Create();
+            DamageIndicator.Init(Damage.GetEdamage);
             ee = new EarlyEvade();
             AutoLevel.Init();
             Game.OnUpdate += OnUpdate;
@@ -69,9 +73,9 @@ namespace HastaKalistaBaby
                 case Orbwalking.OrbwalkingMode.Combo:
                     Items();
                     Qlogic();
-                    if (root.Item("Fly").GetValue<bool>() || Helper.AttackSpeed()<1.70)
+                    if (root.Item("Fly").GetValue<bool>() || Helper.AttackSpeed() < 1.70)
                     {
-                        var target = TargetSelector.GetTarget(Orbwalking.GetAttackRange(Player),TargetSelector.DamageType.Physical);
+                        var target = TargetSelector.GetTarget(Orbwalking.GetAttackRange(Player), TargetSelector.DamageType.Physical);
                         if (target.IsValidTarget())
                         {
                             if (Game.Time * 1000 >= Orbwalking.LastAATick + 1)
@@ -91,7 +95,7 @@ namespace HastaKalistaBaby
                     break;
 
                 case Orbwalking.OrbwalkingMode.LaneClear:
-                    if(root.Item("AutoQH").GetValue<bool>())
+                    if (root.Item("AutoQH").GetValue<bool>())
                     {
                         Qlogic();
                     }
@@ -120,33 +124,35 @@ namespace HastaKalistaBaby
                 case Orbwalking.OrbwalkingMode.LastHit:
                     break;
             }
+            
             WLogic();
             RLogic();
             ELogic();
             LaneClear();
             JungleClear();
+            Pots();
         }
 
 
 
         private static void Qlogic()
         {
-            if(!Q.IsReady() || !root.Item("AutoQ").GetValue<bool>() || Helper.GetMana(Q)<80)
+            if (!Q.IsReady() || !root.Item("AutoQ").GetValue<bool>() || Helper.GetMana(Q) < 80)
             {
                 return;
             }
 
-            var target = TargetSelector.GetTarget(E.Range*1.2f,TargetSelector.DamageType.Physical);
+            var target = TargetSelector.GetTarget(E.Range * 1.2f, TargetSelector.DamageType.Physical);
             if (target.IsValidTarget())
             {
                 var predout = Q.GetPrediction(target);
                 var coll = predout.CollisionObjects;
 
-                if (coll.Count<1)
+                if (coll.Count < 1)
                 {
                     Q.CastIfHitchanceEquals(target, HitChance.High);
                 }
-                if(coll.Count == 1 && root.Item("AutoQM").GetValue<bool>())
+                if (coll.Count == 1 && root.Item("AutoQM").GetValue<bool>())
                 {
                     foreach (var c in coll)
                     {
@@ -163,18 +169,18 @@ namespace HastaKalistaBaby
 
         private static void WLogic()
         {
-            if(!W.IsReady() && Helper.GetMana(W)<80 && Game.Time - wtime < 2)
+            if (!W.IsReady() && Helper.GetMana(W) < 80 && Game.Time - wtime < 2)
             {
                 return;
             }
 
-            if(Helper.CountEnemy(Player.Position, 1300) > 0)
+            if (Helper.CountEnemy(Player.Position, 1300) > 0)
             {
                 wtime = Game.Time;
             }
 
 
-            if ((root.Item("AutoW").GetValue<bool>()||root.Item("WAll").GetValue<KeyBind>().Active) && Helper.CountEnemy(Player.Position,1300) == 0)
+            if ((root.Item("AutoW").GetValue<bool>() || root.Item("WAll").GetValue<KeyBind>().Active) && Helper.CountEnemy(Player.Position, 1300) == 0)
             {
                 if (wcount > 0)
                 {
@@ -250,7 +256,7 @@ namespace HastaKalistaBaby
 
         private static void RLogic()
         {
-            if (Player.IsRecalling() || Player.InFountain() || !R.IsReady() || Helper.GetMana(R)<80)
+            if (Player.IsRecalling() || Player.InFountain() || !R.IsReady() || Helper.GetMana(R) < 80)
             {
                 return;
             }
@@ -263,24 +269,24 @@ namespace HastaKalistaBaby
                     break;
                 }
             }
-            else if (soulmate.IsVisible && soulmate.Distance(Player)<R.Range)
+            else if (soulmate.IsVisible && soulmate.Distance(Player) < R.Range)
             {
-                if (soulmate.Health < Helper.CountEnemy(soulmate.Position, 600) * soulmate.Level *30)
+                if (soulmate.Health < Helper.CountEnemy(soulmate.Position, 600) * soulmate.Level * 30)
                 {
                     R.Cast();
                 }
-                if(soulmate.ChampionName == "Blitzcrank" && Player.Distance(soulmate.Position) > 300)
+                if (soulmate.ChampionName == "Blitzcrank" && Player.Distance(soulmate.Position) > 300)
                 {
-                    if(Game.Time - grabT<0.7)
+                    if (Game.Time - grabT < 0.7)
                     {
                         return;
                     }
-                    foreach(var enemy in HeroManager.Enemies.Where(x=> !x.IsDead && !x.IsZombie && x.HasBuff("rocketgrab2")))
+                    foreach (var enemy in HeroManager.Enemies.Where(x => !x.IsDead && !x.IsZombie && x.HasBuff("rocketgrab2")))
                     {
                         R.Cast();
                     }
                 }
-                if(soulmate.ChampionName == "TahmKench" && Player.Distance(soulmate.Position) > 300)
+                if (soulmate.ChampionName == "TahmKench" && Player.Distance(soulmate.Position) > 300)
                 {
                     foreach (var enemy in HeroManager.Enemies.Where(x => !x.IsDead && !x.IsZombie && x.HasBuff("tahmkenchwdevoured")))
                     {
@@ -297,94 +303,25 @@ namespace HastaKalistaBaby
             }
         }
 
-
-        private static void Items()
-        {
-            //Bilgewater's Cutlass
-            if (root.Item("bilg").GetValue<bool>())
-            {
-                if (bilgwat.IsOwned() && bilgwat.IsReady())
-                {
-                    var target = TargetSelector.GetTarget(bilgwat.Range, TargetSelector.DamageType.Physical);
-                    if (target != null && !target.IsZombie)
-                    {
-                        if (target.HealthPercent <= root.Item("enemyBotkr").GetValue<Slider>().Value)
-                        {
-                            bilgwat.Cast(target);
-                        }
-                        if (Player.HealthPercent <= root.Item("selfBotkr").GetValue<Slider>().Value)
-                        {
-                            bilgwat.Cast(target);
-                        }
-                    }
-                }
-            }
-
-            //Botrk
-            if (root.Item("Botkr").GetValue<bool>())
-            {
-                if (botrk.IsOwned() && botrk.IsReady())
-                {
-                    var target = TargetSelector.GetTarget(botrk.Range, TargetSelector.DamageType.Physical);
-                    if (target != null && !target.IsZombie)
-                    {
-                        if (target.HealthPercent <= root.Item("enemyBotkr").GetValue<Slider>().Value)
-                        {
-                            botrk.Cast(target);
-                        }
-                        if (Player.HealthPercent <= root.Item("selfBotkr").GetValue<Slider>().Value)
-                        {
-                            botrk.Cast(target);
-                        }
-                    }
-                }
-            }
-
-            //Youumu
-            if (root.Item("youm").GetValue<bool>())
-            {
-                if (yom.IsOwned() && yom.IsReady())
-                {
-                    var target = TargetSelector.GetTarget(botrk.Range, TargetSelector.DamageType.Physical);
-                    {
-                        if (target != null && !target.IsZombie)
-                        {
-                            if (target.HealthPercent <= root.Item("enemyYoumuus").GetValue<Slider>().Value)
-                            {
-                                yom.Cast();
-                            }
-                            if (Player.HealthPercent <= root.Item("selfYoumuus").GetValue<Slider>().Value)
-                            {
-                                yom.Cast();
-                            }
-                        }
-                    }
-                }
-            }
-
-
-
-        }
-
         private static void LaneClear()
         {
-            if(!E.IsReady() || Helper.GetMana(E)<80)
+            if (!E.IsReady() || Helper.GetMana(E) < 80)
             {
                 return;
             }
 
-            var minions = MinionManager.GetMinions(Orbwalking.GetRealAutoAttackRange(Player),MinionTypes.All,MinionTeam.Enemy).ToList();
+            var minions = MinionManager.GetMinions(Orbwalking.GetRealAutoAttackRange(Player), MinionTypes.All, MinionTeam.Enemy).ToList();
 
             if (minions.Count == 0)
-            { 
+            {
                 return;
             }
             if (root.Item("AutoEMinions").GetValue<bool>() || root.Item("BigMinionFinisher").GetValue<bool>() || root.Item("AutoEMinionsTower").GetValue<bool>())
             {
                 int killable = 0;
-                foreach(var m in minions)
+                foreach (var m in minions)
                 {
-                    if (Damage.GetEdamage(m) > m.Health && HealthPrediction.GetHealthPrediction(m, 500, 250) > Player.GetAutoAttackDamage(m) && m.GetBuff("kalistaexpungemarker").EndTime> 0.5)
+                    if (Damage.GetEdamage(m) > m.Health && HealthPrediction.GetHealthPrediction(m, 500, 250) > Player.GetAutoAttackDamage(m) && m.GetBuff("kalistaexpungemarker").EndTime > 0.5)
                     {
                         killable++;
                         if (killable >= root.Item("minAutoEMinions").GetValue<Slider>().Value && root.Item("AutoEMinions").GetValue<bool>() || (m.CharData.BaseSkinName.ToLower().Contains("siege") || m.CharData.BaseSkinName.ToLower().Contains("super")) && root.Item("BigMinionFinisher").GetValue<bool>())
@@ -405,11 +342,11 @@ namespace HastaKalistaBaby
         private static void JungleClear()
         {
 
-            foreach (var jungle in MinionManager.GetMinions(E.Range,MinionTypes.All,MinionTeam.Neutral))
-            {   
+            foreach (var jungle in MinionManager.GetMinions(E.Range, MinionTypes.All, MinionTeam.Neutral))
+            {
                 if (Damage.GetEdamage(jungle) > jungle.Health)
                 {
-                    if (jungle.Name.Contains("Red")  && root.Item("RedM").GetValue<bool>()  && !jungle.Name.Contains("RedMini"))
+                    if (jungle.Name.Contains("Red") && root.Item("RedM").GetValue<bool>() && !jungle.Name.Contains("RedMini"))
                     {
                         CastE();
                     }
@@ -421,7 +358,7 @@ namespace HastaKalistaBaby
                     {
                         CastE();
                     }
-                    if(jungle.Name.Contains("Dragon") && root.Item("DrakeM").GetValue<bool>())
+                    if (jungle.Name.Contains("Dragon") && root.Item("DrakeM").GetValue<bool>())
                     {
                         CastE();
                     }
@@ -429,11 +366,11 @@ namespace HastaKalistaBaby
                     {
                         CastE();
                     }
-                    if(jungle.Name.Contains("Crab") && root.Item("MidM").GetValue<bool>())
+                    if (jungle.Name.Contains("Crab") && root.Item("MidM").GetValue<bool>())
                     {
                         CastE();
                     }
-                    if(jungle.Name.Contains("Mini") && root.Item("SmallM").GetValue<bool>() && !jungle.Name.Contains("Crab"))
+                    if (jungle.Name.Contains("Mini") && root.Item("SmallM").GetValue<bool>() && !jungle.Name.Contains("Crab"))
                     {
                         CastE();
                     }
@@ -443,9 +380,9 @@ namespace HastaKalistaBaby
 
         private static void Drawing_OnDraw(EventArgs args)
         {
-            if(root.Item("Qrange").GetValue<bool>())
+            if (root.Item("Qrange").GetValue<bool>())
             {
-                if(Q.IsReady())
+                if (Q.IsReady())
                 {
                     if (root.Item("fps").GetValue<bool>())
                     {
@@ -505,12 +442,12 @@ namespace HastaKalistaBaby
 
             if (root.Item("Minionh").GetValue<bool>())
             {
-                foreach (var e in ObjectManager.Get<Obj_AI_Base>().Where(x=> x.IsMinion && Helper.hasE(x) && x.IsValidTarget(E.Range + 250)))
+                foreach (var e in ObjectManager.Get<Obj_AI_Base>().Where(x => x.IsMinion && Helper.hasE(x) && x.IsValidTarget(E.Range + 250)))
                 {
                     if (Damage.GetEdamage(e) > e.Health)
                     {
                         Vector3 p = new Vector3((int)e.Position.X, (int)e.Position.Y, (int)e.Position.Z);
-                        var points = Helper.CalculateVertices(4, e.ScaleSkinCoef *30, 70, p);
+                        var points = Helper.CalculateVertices(4, e.ScaleSkinCoef * 30, 70, p);
 
                         PolygonDraw(p, points, 2, Color.LightGreen);
                     }
@@ -530,7 +467,7 @@ namespace HastaKalistaBaby
                         Text.DrawText(null, "%", (int)enemy.HPBarPosition.X + 125, (int)enemy.HPBarPosition.Y + 41, SharpDX.Color.Black);
                         Text.DrawText(null, dmg.ToString() + "%", (int)enemy.HPBarPosition.X + 110, (int)enemy.HPBarPosition.Y + 40, SharpDX.Color.WhiteSmoke);
                     }
-                    if(dmg >= 10)
+                    if (dmg >= 10)
                     {
                         Text.DrawText(null, dmg.ToString(), (int)enemy.HPBarPosition.X + 108, (int)enemy.HPBarPosition.Y + 41, SharpDX.Color.Black);
                         Text.DrawText(null, "%", (int)enemy.HPBarPosition.X + 138, (int)enemy.HPBarPosition.Y + 41, SharpDX.Color.Black);
@@ -606,7 +543,7 @@ namespace HastaKalistaBaby
             E.Cast();
         }
 
-        private static void PolygonDraw(Vector3 Center,Vector3[] Points,float thickness,Color color)
+        private static void PolygonDraw(Vector3 Center, Vector3[] Points, float thickness, Color color)
         {
             for (int i = 0; i < Points.Count() - 1; i++)
             {
@@ -622,6 +559,107 @@ namespace HastaKalistaBaby
             Drawing.DrawLine(Drawing.WorldToScreen(new Vector3(new Vector2(Points[Points.Length - 1].X, Points[Points.Length - 1].Y),
                                 Player.Position.Z)), Drawing.WorldToScreen(new Vector3(new Vector2(Points[0].X, Points[0].Y),
                                  Player.Position.Z)), thickness, color);
+        }
+
+        //  ITEMS
+        private static void Items()
+        {
+            //Bilgewater's Cutlass
+            if (root.Item("bilg").GetValue<bool>())
+            {
+                if (bilgwat.IsOwned() && bilgwat.IsReady())
+                {
+                    var target = TargetSelector.GetTarget(bilgwat.Range, TargetSelector.DamageType.Physical);
+                    if (target != null && !target.IsZombie)
+                    {
+                        if (target.HealthPercent <= root.Item("enemyBotkr").GetValue<Slider>().Value)
+                        {
+                            bilgwat.Cast(target);
+                        }
+                        if (Player.HealthPercent <= root.Item("selfBotkr").GetValue<Slider>().Value)
+                        {
+                            bilgwat.Cast(target);
+                        }
+                    }
+                }
+            }
+
+            //Botrk
+            if (root.Item("Botkr").GetValue<bool>())
+            {
+                if (botrk.IsOwned() && botrk.IsReady())
+                {
+                    var target = TargetSelector.GetTarget(botrk.Range, TargetSelector.DamageType.Physical);
+                    if (target != null && !target.IsZombie)
+                    {
+                        if (target.HealthPercent <= root.Item("enemyBotkr").GetValue<Slider>().Value)
+                        {
+                            botrk.Cast(target);
+                        }
+                        if (Player.HealthPercent <= root.Item("selfBotkr").GetValue<Slider>().Value)
+                        {
+                            botrk.Cast(target);
+                        }
+                    }
+                }
+            }
+
+            //Youumu
+            if (root.Item("youm").GetValue<bool>())
+            {
+                if (yom.IsOwned() && yom.IsReady())
+                {
+                    var target = TargetSelector.GetTarget(botrk.Range, TargetSelector.DamageType.Physical);
+                    {
+                        if (target != null && !target.IsZombie)
+                        {
+                            if (target.HealthPercent <= root.Item("enemyYoumuus").GetValue<Slider>().Value)
+                            {
+                                yom.Cast();
+                            }
+                            if (Player.HealthPercent <= root.Item("selfYoumuus").GetValue<Slider>().Value)
+                            {
+                                yom.Cast();
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        private static void Pots()
+        {
+            if (!Player.InFountain() && !Player.HasBuff("Recall"))
+            {
+                if (manapotion.IsReady() && !Player.HasBuff("FlaskOfCrystalWater") && root.Item("mp1").GetValue<bool>())
+                {
+                    if (Player.CountEnemiesInRange(1200) > 0 && Player.Mana < 200)
+                        manapotion.Cast();
+                }
+
+                if (Player.HasBuff("RegenerationPotion") || Player.HasBuff("ItemMiniRegenPotion") || Player.HasBuff("ItemCrystalFlask"))
+                    return;
+
+                if (flask.IsReady() && root.Item("flask").GetValue<bool>())
+                {
+                    if (Player.CountEnemiesInRange(700) > 0 && Player.Health + 200 < Player.MaxHealth)
+                        flask.Cast();
+                    else if (Player.Health < Player.MaxHealth * 0.6)
+                        flask.Cast();
+                    else if (Player.CountEnemiesInRange(1200) > 0 && Player.Mana < 200 && !Player.HasBuff("FlaskOfCrystalWater"))
+                        flask.Cast();
+                    return;
+                }
+
+                if (healthpotion.IsReady() && root.Item("hp1").GetValue<bool>())
+                {
+                    if (Player.CountEnemiesInRange(700) > 0 && Player.Health + 200 < Player.MaxHealth)
+                        healthpotion.Cast();
+                    else if (Player.Health < Player.MaxHealth * 0.6)
+                        healthpotion.Cast();
+                    return;
+                }
+            }
         }
     }
 }

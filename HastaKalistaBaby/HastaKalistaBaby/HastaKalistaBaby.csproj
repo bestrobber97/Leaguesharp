@@ -61,6 +61,7 @@
   <ItemGroup>
     <Compile Include="AutoLevel.cs" />
     <Compile Include="Damage.cs" />
+    <Compile Include="DamageIndicator.cs" />
     <Compile Include="EarlyEvade.cs" />
     <Compile Include="Helper.cs" />
     <Compile Include="MenuManager.cs" />

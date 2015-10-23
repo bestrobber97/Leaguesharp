@@ -54,8 +54,12 @@ namespace HastaKalistaBaby
                 root.AddSubMenu(r);
             }
 
-            var item = new Menu("Item Settings", "item");
+            var item = new Menu("Activator Settings", "item");
             {
+                item.AddItem(new MenuItem("hpp", "Potions")).SetFontStyle(System.Drawing.FontStyle.Bold, Color.BlueViolet);
+                item.AddItem(new MenuItem("hp1", "Health Potion").SetValue(true));
+                item.AddItem(new MenuItem("mp1", "Mana Potion").SetValue(true));
+                item.AddItem(new MenuItem("flask", "Crystalline Flask").SetValue(true));
                 item.AddItem(new MenuItem("bilgwater", "Bilgewater's Cutlass")).SetFontStyle(System.Drawing.FontStyle.Bold, Color.Orange);
                 item.AddItem(new MenuItem("bilg", "Bilgewater's Cutlass").SetValue(true));
                 item.AddItem(new MenuItem("enemybilg", "Use on Enemy HP % <=").SetValue(new Slider(90, 0, 100)));
@@ -78,6 +82,7 @@ namespace HastaKalistaBaby
                 draw.AddItem(new MenuItem("Erange", "Draw E Range").SetValue(true));
                 draw.AddItem(new MenuItem("Rrange", "Draw R Range").SetValue(true));
                 draw.AddItem(new MenuItem("healthp", "Show Health Percent").SetValue(true));
+                draw.AddItem(new MenuItem("healthp1", "Show Damage HealthBar").SetValue(new Circle(true, System.Drawing.Color.LightSkyBlue)));
                 draw.AddItem(new MenuItem("Target", "Draw Current Target").SetValue(true));
                 draw.AddItem(new MenuItem("TargetA", "Draw Target Attack Range").SetValue(true));
                 draw.AddItem(new MenuItem("Minionh", "Draw killable minions").SetValue(true));
