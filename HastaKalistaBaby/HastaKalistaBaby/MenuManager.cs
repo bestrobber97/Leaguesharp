@@ -23,6 +23,8 @@ namespace HastaKalistaBaby
                 w.AddItem(new MenuItem("Wsetting", "W Settings")).SetFontStyle(System.Drawing.FontStyle.Bold, Color.RosyBrown);
                 w.AddItem(new MenuItem("AutoW", "Auto W").SetValue(true));
                 w.AddItem(new MenuItem("WAll", "Cast W on Nearest Monster").SetValue(new KeyBind('A',KeyBindType.Press)));
+                w.AddItem(new MenuItem("WBaron", "Cast W on Baron").SetValue(new KeyBind('T', KeyBindType.Press)));
+                w.AddItem(new MenuItem("WDrake", "Cast W on Drake").SetValue(new KeyBind('Y', KeyBindType.Press)));
                 root.AddSubMenu(w);
             }
 
@@ -30,6 +32,8 @@ namespace HastaKalistaBaby
             {
                 e.AddItem(new MenuItem("Esetting", "E Settings")).SetFontStyle(System.Drawing.FontStyle.Bold, Color.Blue);
                 e.AddItem(new MenuItem("AutoEChamp", "Auto E On Champions").SetValue(true));
+                e.AddItem(new MenuItem("AutoEDead", "Auto E Before Death").SetValue(true));
+                e.AddItem(new MenuItem("AutoEDeadS", "Auto E Before Death if Health % <=").SetValue(new Slider(15, 1, 30)));
                 e.AddItem(new MenuItem("jEsetting", "Jungle Settings"));
                 e.AddItem(new MenuItem("BlueM", "Auto E Blue").SetValue(true));
                 e.AddItem(new MenuItem("RedM", "Auto E Red").SetValue(true));

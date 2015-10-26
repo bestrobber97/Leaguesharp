@@ -124,7 +124,6 @@ namespace HastaKalistaBaby
                 case Orbwalking.OrbwalkingMode.LastHit:
                     break;
             }
-            
             WLogic();
             RLogic();
             ELogic();
@@ -179,6 +178,25 @@ namespace HastaKalistaBaby
                 wtime = Game.Time;
             }
 
+            if(root.Item("WBaron").GetValue<KeyBind>().Active)
+            {
+                Vector3 baronPos;
+                baronPos.X = 5232;
+                baronPos.Y = 10788;
+                baronPos.Z = 0;
+                if (Player.Distance(baronPos) < 5000)
+                    W.Cast(baronPos);
+            }
+
+            if(root.Item("WDrake").GetValue<KeyBind>().Active)
+            {
+                Vector3 dragonPos;
+                dragonPos.X = 9919f;
+                dragonPos.Y = 4475f;
+                dragonPos.Z = 0f;
+                if (Player.Distance(dragonPos) < 5000)
+                    W.Cast(dragonPos);
+            }
 
             if ((root.Item("AutoW").GetValue<bool>() || root.Item("WAll").GetValue<KeyBind>().Active) && Helper.CountEnemy(Player.Position, 1300) == 0)
             {
@@ -240,6 +258,11 @@ namespace HastaKalistaBaby
             if (!E.IsReady())
             {
                 return;
+            }
+
+            if (root.Item("AutoEDead").GetValue<bool>() && Player.HealthPercent < root.Item("AutoEDeadS").GetValue<Slider>().Value && HeroManager.Enemies.Any(o => o.IsValidTarget() && Helper.hasE(o) && E.IsInRange(o)))
+            {
+                E.Cast();
             }
 
             foreach (var enemy in ObjectManager.Get<Obj_AI_Hero>().Where(x => x.IsEnemy && Helper.hasE(x) && !Helper.Unkillable(x) && x.Distance(Player) < 900 && !x.IsDead))
