@@ -82,7 +82,7 @@ namespace HastaKalistaBaby
                             {
                                 Player.IssueOrder(GameObjectOrder.MoveTo, Game.CursorPos);
                             }
-                            if (Game.Time * 1000 > Orbwalking.LastAATick + Player.AttackDelay * 1000 - 180)
+                            if (Game.Time * 1000 > Orbwalking.LastAATick + Player.AttackDelay * 1000 - 150f)
                             {
                                 Player.IssueOrder(GameObjectOrder.AttackUnit, target);
                             }
@@ -108,7 +108,7 @@ namespace HastaKalistaBaby
                             {
                                 Player.IssueOrder(GameObjectOrder.MoveTo, Game.CursorPos);
                             }
-                            if (Game.Time * 1000 > Orbwalking.LastAATick + Player.AttackDelay * 1000 - 180)
+                            if (Game.Time * 1000 > Orbwalking.LastAATick + Player.AttackDelay * 1000 - 150f)
                             {
                                 Player.IssueOrder(GameObjectOrder.AttackUnit, target);
                             }
