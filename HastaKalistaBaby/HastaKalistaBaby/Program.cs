@@ -276,7 +276,7 @@ namespace HastaKalistaBaby
 
         private static void RLogic()
         {
-            if (Player.IsRecalling() || Player.InFountain() || !R.IsReady() || Helper.GetMana(R) < 80)
+            if (Player.IsRecalling() || Player.InFountain() || !R.IsReady() || Helper.GetMana(R) < 80 || !root.Item("AutoR").GetValue<bool>())
             {
                 return;
             }
