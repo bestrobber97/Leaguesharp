@@ -120,9 +120,6 @@ namespace HastaKalistaBaby
                     }
 
                     break;
-
-                case Orbwalking.OrbwalkingMode.LastHit:
-                    break;
             }
             WLogic();
             RLogic();
