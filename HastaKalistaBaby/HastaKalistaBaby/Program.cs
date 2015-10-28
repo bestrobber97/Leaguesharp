@@ -73,50 +73,12 @@ namespace HastaKalistaBaby
                 case Orbwalking.OrbwalkingMode.Combo:
                     Items();
                     Qlogic();
-                    if (root.Item("Fly").GetValue<bool>() || Helper.AttackSpeed() < 1.70)
-                    {
-                        var target = TargetSelector.GetTarget(Orbwalking.GetAttackRange(Player), TargetSelector.DamageType.Physical);
-                        if (target.IsValidTarget())
-                        {
-                            if (Game.Time * 1000 >= Orbwalking.LastAATick + 1)
-                            {
-                                Player.IssueOrder(GameObjectOrder.MoveTo, Game.CursorPos);
-                            }
-                            if (Game.Time * 1000 > Orbwalking.LastAATick + Player.AttackDelay * 1000 - 150f)
-                            {
-                                Player.IssueOrder(GameObjectOrder.AttackUnit, target);
-                            }
-                        }
-                        else
-                        {
-                            Player.IssueOrder(GameObjectOrder.MoveTo, Game.CursorPos);
-                        }
-                    }
                     break;
 
                 case Orbwalking.OrbwalkingMode.LaneClear:
                     if (root.Item("AutoQH").GetValue<bool>())
                     {
                         Qlogic();
-                    }
-                    if (root.Item("Fly").GetValue<bool>() || Helper.AttackSpeed() < 1.70)
-                    {
-                        var target = Orbwalker.GetTarget();
-                        if (target.IsValidTarget())
-                        {
-                            if (Game.Time * 1000 >= Orbwalking.LastAATick + 1)
-                            {
-                                Player.IssueOrder(GameObjectOrder.MoveTo, Game.CursorPos);
-                            }
-                            if (Game.Time * 1000 > Orbwalking.LastAATick + Player.AttackDelay * 1000 - 150f)
-                            {
-                                Player.IssueOrder(GameObjectOrder.AttackUnit, target);
-                            }
-                        }
-                        else
-                        {
-                            Player.IssueOrder(GameObjectOrder.MoveTo, Game.CursorPos);
-                        }
                     }
 
                     break;
